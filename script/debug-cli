@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+cargo build -p gram && cargo run -p cli -- --foreground --gram=${CARGO_TARGET_DIR:-target}/debug/gram "$@"

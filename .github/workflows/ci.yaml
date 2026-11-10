@@ -1,0 +1,172 @@
+# yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
+name: LightCode macOS builds and releases
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build and publish (leave empty for an artifact-only build)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lightcode-macos-release-${{ inputs.tag || github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  CARGO_BUILD_JOBS: "3"
+  CARGO_NET_RETRY: "5"
+  RUST_BACKTRACE: "1"
+  LIGHTCODE_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+  LIGHTCODE_RELEASE_TAG: ${{ inputs.tag || (github.ref_type == 'tag' && github.ref_name) || '' }}
+
+jobs:
+  build:
+    name: macOS (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-26
+            target: aarch64-apple-darwin
+            arch: aarch64
+          - runner: macos-26-intel
+            target: x86_64-apple-darwin
+            arch: x86_64
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Prepare Xcode and build tools
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          if ! xcrun --find metal >/dev/null 2>&1; then
+            xcodebuild -downloadComponent MetalToolchain
+          fi
+          if ! command -v cmake >/dev/null 2>&1; then
+            brew install cmake
+          fi
+          echo "BINDGEN_EXTRA_CLANG_ARGS=--sysroot=$(xcrun --show-sdk-path)" >> "$GITHUB_ENV"
+
+      - name: Install the repository's Rust toolchain
+        run: |
+          set -euo pipefail
+          cargo_bin="${CARGO_HOME:-$HOME/.cargo}/bin"
+          export PATH="$cargo_bin:$PATH"
+          printf '%s\n' "$cargo_bin" >> "$GITHUB_PATH"
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o "$RUNNER_TEMP/rustup-init.sh"
+            sh "$RUNNER_TEMP/rustup-init.sh" -y --no-modify-path --profile minimal --default-toolchain none
+          fi
+          rustup show active-toolchain
+          rustup target add "$TARGET"
+        env:
+          TARGET: ${{ matrix.target }}
+
+      - name: Build and package the application
+        # Ad-hoc signing needs no Apple account or repository secrets.
+        env:
+          APPLE_SIGNING_KEY: "-"
+          TARGET: ${{ matrix.target }}
+        run: ./script/bundle-mac "$TARGET"
+
+      - name: Collect packages
+        env:
+          TARGET: ${{ matrix.target }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp "target/$TARGET/release/LightCode-$ARCH.dmg" dist/
+          cp "target/lightcode-remote-server-macos-$ARCH.gz" dist/
+          test -s "dist/LightCode-$ARCH.dmg"
+          test -s "dist/lightcode-remote-server-macos-$ARCH.gz"
+
+      - name: Save build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: github.ref_type == 'tag' || inputs.tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the release source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Download both macOS builds
+        uses: actions/download-artifact@v8
+        with:
+          pattern: macos-*
+          merge-multiple: true
+          path: dist
+
+      - name: Package matching source and checksums
+        run: |
+          set -euo pipefail
+          for arch in aarch64 x86_64; do
+            test -s "dist/LightCode-$arch.dmg"
+            test -s "dist/lightcode-remote-server-macos-$arch.gz"
+          done
+          git archive --format=tar.gz --prefix=lightcode-source/ HEAD > dist/LightCode-source.tar.gz
+          cd dist
+          sha256sum -- *.dmg *.gz > SHA256SUMS.txt
+
+      - name: Create release or update its assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" dist/* --clobber
+          else
+            cat > "$RUNNER_TEMP/release-notes.md" <<'NOTES'
+          LightCode is an independent fork of Gram. Builds are ad-hoc signed, without Apple Developer ID signing or notarization; macOS may ask you to allow the application in Privacy & Security.
+
+          - `LightCode-aarch64.dmg`: Apple Silicon (M-series).
+          - `LightCode-x86_64.dmg`: Intel Macs.
+          - `lightcode-remote-server-macos-*.gz`: matching macOS SSH remote server.
+          - `LightCode-source.tar.gz`: source for this release, including build scripts.
+          - `SHA256SUMS.txt`: SHA-256 checksums.
+          NOTES
+            release_args=(--verify-tag --title "$RELEASE_TAG" --generate-notes
+              --notes-file "$RUNNER_TEMP/release-notes.md")
+            if [[ "$RELEASE_TAG" == *-* ]]; then
+              release_args+=(--prerelease)
+            fi
+            gh release create "$RELEASE_TAG" dist/* "${release_args[@]}"
+          fi

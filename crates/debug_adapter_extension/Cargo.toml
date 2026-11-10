@@ -1,0 +1,26 @@
+[package]
+name = "debug_adapter_extension"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license = "GPL-3.0-or-later"
+publish.workspace = true
+
+[lib]
+doctest = false
+path = "src/debug_adapter_extension.rs"
+test = false
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+collections.workspace = true
+dap.workspace = true
+extension.workspace = true
+gpui.workspace = true
+serde_json.workspace = true
+task.workspace = true
+util.workspace = true
+
+[lints]
+workspace = true

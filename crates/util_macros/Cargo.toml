@@ -1,0 +1,24 @@
+[package]
+name = "util_macros"
+version.workspace = true
+edition.workspace = true
+description = "Utility macros for Gram"
+repository.workspace = true
+license = "Apache-2.0"
+publish = false
+
+[lib]
+path = "src/util_macros.rs"
+proc-macro = true
+test = false
+
+[dependencies]
+perf.workspace = true
+quote.workspace = true
+syn.workspace = true
+
+[features]
+perf-enabled = []
+
+[lints]
+workspace = true

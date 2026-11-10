@@ -16,6 +16,7 @@ members = [
   "crates/command_palette",
   "crates/command_palette_hooks",
   "crates/component",
+  "crates/copilot",
   "crates/crashes",
   "crates/dap",
   "crates/dap_adapters",
@@ -170,6 +171,7 @@ collections = { path = "crates/collections" }
 command_palette = { path = "crates/command_palette" }
 command_palette_hooks = { path = "crates/command_palette_hooks" }
 component = { path = "crates/component" }
+copilot = { path = "crates/copilot" }
 crashes = { path = "crates/crashes" }
 dap = { path = "crates/dap" }
 dap_adapters = { path = "crates/dap_adapters" }

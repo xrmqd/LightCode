@@ -26,6 +26,7 @@ assets.workspace = true
 buffer_diff.workspace = true
 clock.workspace = true
 collections.workspace = true
+copilot.workspace = true
 db.workspace = true
 file_icons.workspace = true
 fs.workspace = true

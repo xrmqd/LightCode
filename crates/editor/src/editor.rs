@@ -17,6 +17,7 @@ mod bracket_colorization;
 mod clangd_ext;
 pub mod code_context_menus;
 pub mod completion;
+mod copilot_editor;
 pub mod display_map;
 mod editor_settings;
 mod element;
@@ -988,6 +989,7 @@ pub struct Editor {
     semantics_provider: Option<Rc<dyn SemanticsProvider>>,
     completion_provider: Option<Rc<dyn CompletionProvider>>,
     completion_tasks: Vec<(CompletionId, Task<()>)>,
+    copilot: copilot_editor::CopilotEditorState,
     next_completion_id: CompletionId,
     signature_help_state: SignatureHelpState,
     auto_signature_help: Option<bool>,
@@ -2076,6 +2078,7 @@ impl Editor {
             context_menu_options: None,
             mouse_context_menu: None,
             completion_tasks: Vec::new(),
+            copilot: copilot_editor::CopilotEditorState::default(),
             inline_blame_popover: None,
             inline_blame_popover_show_task: None,
             signature_help_state: SignatureHelpState::default(),
@@ -2220,6 +2223,7 @@ impl Editor {
         }
         editor.tasks_update_task = Some(editor.refresh_runnables(window, cx));
         editor._subscriptions.extend(project_subscriptions);
+        editor.init_copilot(window, cx);
 
         editor._subscriptions.push(
             cx.subscribe_in(&cx.entity(), window, |editor, _, e: &EditorEvent, window, cx| match e {
@@ -2392,6 +2396,18 @@ impl Editor {
         }
 
         key_context.set("mode", mode);
+        if self.mode.is_full()
+            && copilot::Copilot::global(cx).is_some_and(|service| {
+                let service = service.read(cx);
+                service.ready_for_completions()
+                    && self.copilot_language(cx).is_some_and(|language| service.language_enabled(&language))
+            })
+        {
+            key_context.add("copilot_enabled");
+        }
+        if self.copilot_visible() {
+            key_context.add("copilot_suggestion");
+        }
         if self.pending_rename.is_some() {
             key_context.add("renaming");
         }
@@ -3739,6 +3755,9 @@ impl Editor {
     ) -> bool {
         let mut dismissed = false;
 
+        if _is_user_requested {
+            dismissed |= self.dismiss_copilot(cx);
+        }
         dismissed |= self.take_rename(false, window, cx).is_some();
         dismissed |= self.hide_blame_popover(true, cx);
         dismissed |= hide_hover(self, cx);
@@ -7635,6 +7654,9 @@ impl Editor {
         if self.read_only(cx) {
             return;
         }
+        if !self.context_menu_visible() && self.accept_copilot(window, cx) {
+            return;
+        }
         self.hide_mouse_cursor(HideMouseCursorOrigin::TypingAction, cx);
         let display_map = self.display_map.update(cx, |map, cx| map.snapshot(cx));
         let mut selections = self.selections.all_adjusted(&self.display_snapshot(cx));
@@ -7773,6 +7795,9 @@ impl Editor {
 
         if self.pending_rename.is_some() {
             self.supertab_fallback(window, cx);
+            return;
+        }
+        if !self.context_menu_visible() && self.accept_copilot(window, cx) {
             return;
         }
 

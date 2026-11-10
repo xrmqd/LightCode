@@ -224,6 +224,11 @@ impl EditorElement {
         register_action(editor, window, Editor::delete);
         register_action(editor, window, Editor::tab);
         register_action(editor, window, Editor::supertab);
+        register_action(editor, window, Editor::suggest_copilot_action);
+        register_action(editor, window, Editor::accept_copilot_action);
+        register_action(editor, window, Editor::dismiss_copilot_action);
+        register_action(editor, window, Editor::next_copilot_action);
+        register_action(editor, window, Editor::previous_copilot_action);
         register_action(editor, window, Editor::next_snippet_tabstop);
         register_action(editor, window, Editor::previous_snippet_tabstop);
         register_action(editor, window, Editor::backtab);

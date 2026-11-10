@@ -73,6 +73,22 @@ pub fn app_menus(cx: &mut App) -> Vec<Menu> {
                 MenuItem::os_submenu("Services", gpui::SystemMenuType::Services),
                 MenuItem::separator(),
                 MenuItem::action("Extensions", app_actions::Extensions::default()),
+                MenuItem::submenu(Menu {
+                    name: "GitHub Copilot".into(),
+                    items: vec![
+                        MenuItem::action("Sign In…", copilot::SignIn),
+                        MenuItem::action("Sign Out", copilot::SignOut),
+                        MenuItem::separator(),
+                        MenuItem::action("Enable Copilot", copilot::Enable),
+                        MenuItem::action("Disable Copilot", copilot::Disable),
+                        MenuItem::action("Pause for 10 Minutes", copilot::Snooze),
+                        MenuItem::action("Resume Suggestions", copilot::Resume),
+                        MenuItem::action("Toggle for Current Language", copilot::ToggleLanguage),
+                        MenuItem::separator(),
+                        MenuItem::action("Trigger Suggestion", copilot::Suggest),
+                        MenuItem::action("Accept Suggestion", copilot::Accept),
+                    ],
+                }),
                 #[cfg(not(target_os = "windows"))]
                 MenuItem::action("Install CLI", install_cli::InstallCliBinary),
                 MenuItem::separator(),

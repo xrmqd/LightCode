@@ -520,6 +520,7 @@ pub fn main() {
         load_embedded_fonts(cx);
 
         editor::init(cx);
+        copilot::init(app_state.fs.clone(), app_state.client.http_client(), cx);
         image_viewer::init(cx);
         repl::notebook::init(cx);
         diagnostics::init(cx);

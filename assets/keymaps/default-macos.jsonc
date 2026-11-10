@@ -1198,4 +1198,18 @@
       "cmd-3": "git_picker::ActivateStashTab",
     },
   },
+  {
+    "context": "Editor && mode == full && copilot_enabled",
+    "bindings": {
+      "alt-\\": "copilot::Suggest"
+    }
+  },
+  {
+    "context": "Editor && copilot_suggestion",
+    "bindings": {
+      "alt-enter": "copilot::Accept",
+      "alt-]": "copilot::NextSuggestion",
+      "alt-[": "copilot::PreviousSuggestion"
+    }
+  },
 ]

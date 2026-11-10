@@ -27,6 +27,18 @@ pub use util::serde::default_true;
 
 use crate::{ActiveSettingsProfileName, merge_from};
 
+#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize, JsonSchema, MergeFrom)]
+pub struct CopilotSettingsContent {
+    /// Enable GitHub Copilot. Its server can send code from eligible files to GitHub.
+    pub enabled: Option<bool>,
+    /// LSP language identifiers for which inline suggestions are disabled.
+    pub disabled_languages: Option<Vec<String>>,
+    /// Optional absolute path to an already installed Copilot language server.
+    pub server_path: Option<String>,
+    /// Milliseconds to wait after editing before requesting a suggestion.
+    pub debounce_ms: Option<u64>,
+}
+
 #[with_fallible_options]
 #[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize, JsonSchema, MergeFrom)]
 pub struct SettingsContent {
@@ -70,6 +82,9 @@ pub struct SettingsContent {
 
     /// Configuration for Diagnostics-related features.
     pub diagnostics: Option<DiagnosticsSettingsContent>,
+
+    /// GitHub Copilot inline suggestions. Off until explicitly enabled.
+    pub copilot: Option<CopilotSettingsContent>,
 
     /// Configuration for Git-related features
     pub git: Option<GitSettings>,

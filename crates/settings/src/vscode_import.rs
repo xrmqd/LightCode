@@ -159,6 +159,7 @@ impl VsCodeSettings {
     pub fn settings_content(&self) -> SettingsContent {
         SettingsContent {
             base_keymap: Some(BaseKeymapContent::VSCode),
+            copilot: None,
             debugger: None,
             diagnostics: None,
             editor: self.editor_settings_content(),

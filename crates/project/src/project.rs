@@ -362,6 +362,7 @@ pub enum InlayId {
     Hint(usize),
     Color(usize),
     ReplResult(usize),
+    Copilot(usize),
 }
 
 impl InlayId {
@@ -371,6 +372,7 @@ impl InlayId {
             Self::Hint(id) => *id,
             Self::Color(id) => *id,
             Self::ReplResult(id) => *id,
+            Self::Copilot(id) => *id,
         }
     }
 }

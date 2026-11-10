@@ -7,6 +7,9 @@ LightCode — независимый форк редактора [Gram](https://
 Редактор сохраняет основные возможности исходного проекта: LSP, встроенный Git,
 отладчик DAP, REPL/Jupyter, Vim/Helix-режимы и расширения.
 
+В ветке Copilot доступно [автодополнение GitHub Copilot](docs/github-copilot.md):
+вход через GitHub, подсказки в тексте и управление из строки состояния.
+
 ## Сборки macOS
 
 GitHub Actions собирает **LightCode.app** для Apple Silicon и Intel.

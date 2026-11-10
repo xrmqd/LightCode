@@ -1,5 +1,13 @@
 {
   "$schema": "lightcode://schemas/settings",
+  // GitHub Copilot is opt-in. Enabling it allows the official Copilot
+  // service to receive code context from eligible files.
+  "copilot": {
+    "enabled": false,
+    "disabled_languages": [],
+    "server_path": null,
+    "debounce_ms": 300
+  },
   // The name of the LightCode theme to use for the UI.
   //
   // `mode` is one of:

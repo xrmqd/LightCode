@@ -15,6 +15,7 @@ See [GitHub builds and releases](./development/github-releases.md).
 
 ## Features
 
+- [GitHub Copilot](./github-copilot.md): Opt-in inline code suggestions with GitHub sign-in.
 - [Debugger](./debugger.md): Integrated support for DAP, the debugger adapter
   protocol.
 - [Remote Development](./remote-development.md): Connect to remote servers via

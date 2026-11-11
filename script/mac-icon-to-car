@@ -6,6 +6,7 @@ icon_path="$repo_root/crates/gram/resources/AppIcon.icon"
 output_path="${1:-$repo_root/target/app-icon-assets}"
 plist_path="$output_path/assetcatalog_generated_info.plist"
 
+python3 "$repo_root/script/validate-app-icon" "$icon_path"
 mkdir -p "$output_path"
 
 # The asset name must match both the .icon filename and CFBundleIconName.
@@ -17,7 +18,7 @@ xcrun actool "$icon_path" --compile "$output_path" \
   --development-region en \
   --target-device mac \
   --minimum-deployment-target 26.0 \
-  --platform macosx
+  --platform macosx </dev/null
 
 test -s "$output_path/Assets.car"
 test -s "$plist_path"

@@ -1080,6 +1080,11 @@ fn open_about(cx: &mut App) {
                                             .text_left()
                                             .child(Headline::new(self.headline.clone()).size(HeadlineSize::XSmall))
                                             .child(
+                                                Label::new("LightCode by xrmqd")
+                                                    .size(LabelSize::Small)
+                                                    .color(Color::Muted),
+                                            )
+                                            .child(
                                                 Label::new(GRAM_UPDATE_EXPLANATION)
                                                     .line_height_style(LineHeightStyle::UiLabel)
                                                     .size(LabelSize::XSmall)
@@ -1170,7 +1175,7 @@ fn open_about(cx: &mut App) {
 
     let window_size = Size {
         width: px(480.),
-        height: px(340.),
+        height: px(360.),
     };
     let window_decorations = get_window_decorations(cx);
 

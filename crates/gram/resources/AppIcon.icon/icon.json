@@ -1,9 +1,10 @@
 {
-  "color-space-for-untagged-svg-colors": "srgb",
-  "fill": {
-    "solid": "srgb:0.941176,0.937255,0.921569,1.000000"
-  },
   "fill-specializations": [
+    {
+      "value": {
+        "solid": "srgb:0.941176,0.937255,0.921569,1.000000"
+      }
+    },
     {
       "appearance": "dark",
       "value": {
@@ -14,26 +15,37 @@
   "groups": [
     {
       "name": "Code",
+      "blend-mode": "normal",
+      "blur-material": null,
       "layers": [
         {
           "name": "Closure",
           "image-name": "mark.svg",
           "glass": true,
-          "fill": {
-            "solid": "srgb:0.133333,0.149020,0.141176,1.000000"
-          },
+          "hidden": false,
           "fill-specializations": [
+            {
+              "value": {
+                "solid": "srgb:0.133333,0.149020,0.141176,1.000000"
+              }
+            },
             {
               "appearance": "dark",
               "value": {
                 "solid": "srgb:0.941176,0.937255,0.921569,1.000000"
               }
             }
-          ]
+          ],
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              0
+            ]
+          }
         }
       ],
       "lighting": "individual",
-      "blur-material": 0,
       "specular": true,
       "shadow": {
         "kind": "neutral",
@@ -46,6 +58,7 @@
     }
   ],
   "supported-platforms": {
+    "circles": [],
     "squares": "shared"
   }
 }

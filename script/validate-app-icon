@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""Check the project's Icon Composer document before invoking Apple's compiler.
+
+This checks JSON structure, known compatibility pitfalls, and image references.
+actool remains the authoritative validation and compilation step.
+"""
+
+import argparse
+import json
+from pathlib import Path
+import sys
+import xml.etree.ElementTree as ET
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def check_fills(node, location):
+    variants = node.get("fill-specializations")
+    if variants is None:
+        return
+    require(isinstance(variants, list) and variants, f"{location}: empty fill-specializations")
+    selectors = set()
+    for index, variant in enumerate(variants):
+        require(isinstance(variant, dict) and "value" in variant, f"{location}: fill variant {index} has no value")
+        selector = (variant.get("appearance"), variant.get("idiom"))
+        require(selector not in selectors, f"{location}: duplicate fill variant {selector}")
+        selectors.add(selector)
+
+
+def validate(bundle):
+    document = json.loads((bundle / "icon.json").read_text())
+    require(
+        document.get("color-space-for-untagged-svg-colors") != "srgb",
+        "srgb is not a valid untagged SVG color-space setting; omit it and use tagged fill colors",
+    )
+    check_fills(document, "icon")
+    platforms = document.get("supported-platforms", {})
+    require(isinstance(platforms, dict), "supported-platforms must be an object")
+    if "circles" in platforms:
+        require(isinstance(platforms["circles"], list), "supported-platforms circles must be a list")
+    groups = document.get("groups")
+    require(isinstance(groups, list) and 1 <= len(groups) <= 4, "expected one to four icon groups")
+    assets = (bundle / "Assets").resolve()
+    count = 0
+    for group_index, group in enumerate(groups):
+        check_fills(group, f"group {group_index}")
+        layers = group.get("layers")
+        require(isinstance(layers, list) and layers, f"group {group_index}: no layers")
+        for layer_index, layer in enumerate(layers):
+            location = f"group {group_index}, layer {layer_index}"
+            check_fills(layer, location)
+            for flag in ("glass", "hidden"):
+                if flag in layer:
+                    require(isinstance(layer[flag], bool), f"{location}: {flag} must be a boolean")
+            position = layer.get("position", {})
+            require(isinstance(position, dict), f"{location}: position must be an object")
+            if "scale" in position:
+                require(isinstance(position["scale"], (int, float)) and position["scale"] > 0, f"{location}: invalid scale")
+            if "translation-in-points" in position:
+                points = position["translation-in-points"]
+                require(isinstance(points, list) and len(points) == 2, f"{location}: invalid translation")
+            name = layer.get("image-name")
+            require(isinstance(name, str) and name, f"{location}: missing image-name")
+            image = (assets / name).resolve()
+            require(image.is_relative_to(assets) and image.is_file(), f"{location}: missing Assets/{name}")
+            if image.suffix.lower() == ".svg":
+                root = ET.parse(image).getroot()
+                require(root.tag == "{http://www.w3.org/2000/svg}svg", f"{location}: invalid SVG root")
+            count += 1
+    return count
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("bundle", nargs="?", type=Path, default=Path(__file__).resolve().parent.parent / "crates/gram/resources/AppIcon.icon")
+    bundle = parser.parse_args().bundle
+    try:
+        count = validate(bundle)
+    except (OSError, ValueError, ET.ParseError) as error:
+        print(f"Invalid app icon: {error}", file=sys.stderr)
+        return 1
+    print(f"Validated {bundle.name}: {count} layer(s), JSON structure and image references")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

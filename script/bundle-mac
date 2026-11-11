@@ -107,6 +107,10 @@ else
     exit 1
 fi
 
+# Check native icon compilation before spending time building the editor.
+icon_assets_directory="target/${target_triple}/${target_dir}/app-icon-assets"
+./script/mac-icon-to-car "$icon_assets_directory"
+
 if [[ "$do_build" = "true" ]]; then
 
     rustup target add "$target_triple"
@@ -277,8 +281,6 @@ function sign_binary() {
 
 cp target/"${target_triple}"/${target_dir}/gram "${app_path}/Contents/MacOS/gram"
 cp target/"${target_triple}"/${target_dir}/cli "${app_path}/Contents/MacOS/cli"
-icon_assets_directory="target/${target_triple}/${target_dir}/app-icon-assets"
-./script/mac-icon-to-car "$icon_assets_directory"
 cp "$icon_assets_directory/Assets.car" "${app_path}/Contents/Resources/Assets.car"
 plist_file="${app_path}/Contents/Info.plist"
 # Use the layered icon on macOS 26+, retaining Cargo Bundle's legacy ICNS.

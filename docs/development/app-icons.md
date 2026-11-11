@@ -20,7 +20,23 @@ according to the user's **Icon & widget style** setting in macOS. This selection
 is independent of the editor theme. Clear and tinted treatments are supplied by
 the system from the layered icon; there is no application-side appearance watcher.
 
-`script/mac-icon-to-car` compiles the `.icon` package with Xcode 26 or later.
+Colors use tagged `srgb:` fill values. Do not add an untagged SVG color-space
+value of `srgb`: Icon Composer 1.2 rejects that document with the same format
+error reported by Xcode 26.6. Omitting the optional setting is supported by the
+native decoder; explicit fill colors keep their sRGB tagging.
+
+Appearance-specific fills use Icon Composer's specialization arrays with the
+default value first, followed by the dark override. The layer explicitly records
+its visibility and transform; supported platforms include an empty circle list.
+
+`script/validate-app-icon` checks the JSON structure, the known color-space
+compatibility issue, and image references. Optional properties may remain at
+their native defaults. The check is not a substitute for Apple's decoder.
+
+`script/mac-icon-to-car` validates and compiles the `.icon` package with Xcode 26
+or later, using a valid empty stdin for the asset compiler. CI performs this
+native preflight before installing Rust or compiling the editor. Local bundling
+also compiles the icon before the editor.
 `script/bundle-mac` installs its `Assets.car` into the app resources and sets
 `CFBundleIconName` to `AppIcon`, matching the compiled asset. Icon compilation
 failures stop packaging. The existing `CFBundleIconFile` is retained for legacy

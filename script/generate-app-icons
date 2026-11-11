@@ -24,10 +24,15 @@ def color(fill):
 
 
 def fill_for(item, appearance):
+    default = item.get("fill")
     for variant in item.get("fill-specializations", []):
         if variant.get("appearance") == appearance:
             return color(variant["value"])
-    return color(item["fill"])
+        if "appearance" not in variant and "idiom" not in variant:
+            default = variant["value"]
+    if default is None:
+        raise ValueError("Icon fill has no default appearance")
+    return color(default)
 
 
 def mix(hex_color, target, amount):

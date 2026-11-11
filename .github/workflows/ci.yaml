@@ -5,21 +5,13 @@ on:
   push:
     branches:
       - main
-      - dev
-    tags:
-      - "v*"
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Existing tag to rebuild (leave empty to build the selected branch)"
-        required: false
-        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: lightcode-macos-release-${{ inputs.tag || github.ref }}
+  group: lightcode-macos-release-${{ github.ref }}
   cancel-in-progress: false
 
 defaults:
@@ -37,31 +29,27 @@ env:
 jobs:
   build:
     name: macOS (Apple Silicon)
+    if: github.ref == 'refs/heads/main'
     runs-on: macos-26
     timeout-minutes: 180
     env:
       TARGET: aarch64-apple-darwin
       ARCH: aarch64
+      LIGHTCODE_RELEASE_CHANNEL: stable
     outputs:
-      publish: ${{ steps.meta.outputs.publish }}
-      prerelease: ${{ steps.meta.outputs.prerelease }}
       tag: ${{ steps.meta.outputs.tag }}
       title: ${{ steps.meta.outputs.title }}
       commit: ${{ steps.meta.outputs.commit }}
-      package: ${{ steps.meta.outputs.package }}
-      profile: ${{ steps.meta.outputs.profile }}
     steps:
       - name: Check out source
         uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Select build profile and release
+      - name: Select production release
         id: meta
-        env:
-          INPUT_TAG: ${{ inputs.tag }}
         run: ./script/ci-release-metadata
 
       - name: Prepare Xcode and build tools
@@ -75,6 +63,9 @@ jobs:
             brew install cmake
           fi
           echo "BINDGEN_EXTRA_CLANG_ARGS=--sysroot=$(xcrun --show-sdk-path)" >> "$GITHUB_ENV"
+
+      - name: Validate and compile the app icon
+        run: ./script/mac-icon-to-car "$RUNNER_TEMP/lightcode-app-icon-preflight"
 
       - name: Install the repository's Rust toolchain
         run: |
@@ -93,24 +84,15 @@ jobs:
         # Ad-hoc signing needs no Apple account or repository secrets.
         env:
           APPLE_SIGNING_KEY: "-"
-        run: |
-          set -euo pipefail
-          if [[ "$BUILD_PROFILE" == debug ]]; then
-            ./script/bundle-mac -d "$TARGET"
-            ditto -c -k --sequesterRsrc --keepParent \
-              "target/$TARGET/debug/bundle/osx/LightCode Dev.app" \
-              "target/$TARGET/debug/$INSTALLER_NAME"
-          else
-            ./script/bundle-mac "$TARGET"
-          fi
+        run: ./script/bundle-mac "$TARGET"
 
       - name: Collect packages
         run: |
           set -euo pipefail
           mkdir -p dist
-          cp "target/$TARGET/$BUILD_PROFILE/$INSTALLER_NAME" dist/
+          cp "target/$TARGET/release/LightCode.dmg" dist/
           cp "target/lightcode-remote-server-macos-$ARCH.gz" dist/
-          test -s "dist/$INSTALLER_NAME"
+          test -s dist/LightCode.dmg
           test -s "dist/lightcode-remote-server-macos-$ARCH.gz"
 
       - name: Save build artifacts
@@ -125,13 +107,13 @@ jobs:
   release:
     name: Publish GitHub Release
     needs: build
-    if: needs.build.outputs.publish == 'true'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: write
     env:
-      INSTALLER_NAME: ${{ needs.build.outputs.package }}
+      INSTALLER_NAME: LightCode.dmg
     steps:
       - name: Check out the matching source
         uses: actions/checkout@v7
@@ -164,16 +146,10 @@ jobs:
           RELEASE_TAG: ${{ needs.build.outputs.tag }}
           RELEASE_TITLE: ${{ needs.build.outputs.title }}
           RELEASE_COMMIT: ${{ needs.build.outputs.commit }}
-          PRERELEASE: ${{ needs.build.outputs.prerelease }}
-          BUILD_PROFILE: ${{ needs.build.outputs.profile }}
         run: |
           set -euo pipefail
-          latest=true
-          if [[ "$PRERELEASE" == true ]]; then
-            latest=false
-          fi
           cat > "$RUNNER_TEMP/release-notes.md" <<NOTES
-          LightCode for Apple Silicon. Rust profile: \`$BUILD_PROFILE\`.
+          LightCode for Apple Silicon. Rust profile: \`release\`.
 
           - \`$INSTALLER_NAME\`: the application.
           - \`lightcode-remote-server-macos-aarch64.gz\`: matching macOS SSH remote server.
@@ -186,10 +162,10 @@ jobs:
             gh release upload "$RELEASE_TAG" release-assets/* --clobber
             gh release edit "$RELEASE_TAG" --title "$RELEASE_TITLE" \
               --notes-file "$RUNNER_TEMP/release-notes.md" \
-              --prerelease="$PRERELEASE" --latest="$latest"
+              --prerelease=false --latest=true
           else
             gh release create "$RELEASE_TAG" release-assets/* \
               --target "$RELEASE_COMMIT" --title "$RELEASE_TITLE" \
               --notes-file "$RUNNER_TEMP/release-notes.md" \
-              --prerelease="$PRERELEASE" --latest="$latest"
+              --prerelease=false --latest=true
           fi

@@ -147,12 +147,13 @@ default-members = ["crates/gram"]
 
 [workspace.package]
 version = "3.5.0"
+authors = ["xrmqd"]
 edition = "2024"
 rust-version = "1.95"
-description = "LightCode, an independent code editor based on Gram"
-documentation = "https://gram-editor.com/docs"
-homepage = "https://gram-editor.com"
-repository = "https://codeberg.org/GramEditor/gram"
+description = "LightCode by xrmqd, an independent code editor based on Gram"
+documentation = "https://github.com/xrmqd/LightCode/tree/main/docs"
+homepage = "https://github.com/xrmqd/LightCode"
+repository = "https://github.com/xrmqd/LightCode"
 license = "GPL-3.0-or-later"
 license-file = "LICENSE"
 publish = false

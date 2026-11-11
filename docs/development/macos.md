@@ -57,11 +57,24 @@ export APPLE_SIGNING_KEY=""
 Once you have the dependencies installed, you can build LightCode using
 [Cargo](https://doc.rust-lang.org/cargo/).
 
-For a debug build:
+Development changes are integrated in `dev` and checked locally before promotion
+to `main`. See the [branching workflow](./branching.md).
+
+For a local debug build:
 
 ```zsh
-cargo run
+GRAM_RELEASE_CHANNEL=dev cargo run --package gram
 ```
+
+To create an ad-hoc signed `LightCode Dev.app` for Apple Silicon:
+
+```zsh
+LIGHTCODE_RELEASE_CHANNEL=dev APPLE_SIGNING_KEY=- ./script/bundle-mac -d aarch64-apple-darwin
+```
+
+The app is written to
+`target/aarch64-apple-darwin/debug/bundle/osx/LightCode Dev.app`.
+Pushes to `dev` and working branches do not start GitHub Actions.
 
 For a release build:
 

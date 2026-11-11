@@ -6,14 +6,16 @@ bundle_target() {
   arch="$1"
   target="$arch-apple-darwin"
   cargo clean
-  ./script/bundle-mac $target
-  cp target/$target/release/LightCode-$arch.dmg ../lightcode-$version/LightCode-$arch-$version.dmg
-  cp target/lightcode-remote-server-macos*.gz ../lightcode-$version/lightcode-remote-server-macos-${arch}-${version}.gz
+  ./script/bundle-mac "$target"
+  release_dir="../lightcode-$version"
+  mkdir -p "$release_dir"
+  cp "target/$target/release/LightCode.dmg" "$release_dir/LightCode.dmg"
+  cp "target/lightcode-remote-server-macos-$arch.gz" "../lightcode-$version/lightcode-remote-server-macos-${arch}-${version}.gz"
 }
 
 [ -d ../lightcode-$version ] || {
   echo "../lightcode-$version does not exist" >&2
   exit 1
 }
+# Intel builds are temporarily disabled.
 bundle_target aarch64
-bundle_target x86_64

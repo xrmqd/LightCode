@@ -9,16 +9,10 @@
     "debounce_ms": 300
   },
   // The name of the LightCode theme to use for the UI.
-  //
-  // `mode` is one of:
-  // - "system": Use the theme that corresponds to the system's appearance
-  // - "light": Use the theme indicated by the "light" field
-  // - "dark": Use the theme indicated by the "dark" field
-  "theme": {
-    "mode": "system",
-    "light": "Melange Light",
-    "dark": "Melange Dark",
-  },
+  // Graphite stays dark by default, independent of the system appearance.
+  // To follow the system appearance, use an object with "mode": "system"
+  // and separate "light" and "dark" theme names.
+  "theme": "LightCode Graphite",
   "icon_theme": "LightCode (Default)",
   // The name of a base set of key bindings to use.
   // See crates/settings/src/base_keymap_setting.rs BaseKeymap

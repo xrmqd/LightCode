@@ -230,7 +230,7 @@ function sign_app_binaries() {
     else
         dmg_target_directory="target/${target_triple}/${target_dir}"
         dmg_source_directory="${dmg_target_directory}/dmg"
-        dmg_file_path="${dmg_target_directory}/LightCode-${arch_suffix}.dmg"
+        dmg_file_path="${dmg_target_directory}/LightCode.dmg"
         xcode_bin_dir_path="$(xcode-select -p)/usr/bin"
 
         rm -rf "${dmg_source_directory}"
@@ -272,11 +272,14 @@ function sign_binary() {
 
 cp target/"${target_triple}"/${target_dir}/gram "${app_path}/Contents/MacOS/gram"
 cp target/"${target_triple}"/${target_dir}/cli "${app_path}/Contents/MacOS/cli"
-./script/mac-icon-to-car
-cp -r target/Assets.car "${app_path}/Contents/Resources/Assets.car"
+icon_assets_directory="target/${target_triple}/${target_dir}/app-icon-assets"
+./script/mac-icon-to-car "$icon_assets_directory"
+cp "$icon_assets_directory/Assets.car" "${app_path}/Contents/Resources/Assets.car"
 plist_file="${app_path}/Contents/Info.plist"
-cat "$plist_file" | sed 's|  \<key\>CFBundleIconFile\</key\>|  <key>CFBundleIconName</key>\n  <string>AppIcon</string>\n  <key>CFBundleIconFile</key>|' >"${plist_file}.tmp"
-mv "${plist_file}.tmp" "$plist_file"
+# Use the layered icon on macOS 26+, retaining Cargo Bundle's legacy ICNS.
+if ! /usr/libexec/PlistBuddy -c "Set :CFBundleIconName AppIcon" "$plist_file" 2>/dev/null; then
+    /usr/libexec/PlistBuddy -c "Add :CFBundleIconName string AppIcon" "$plist_file"
+fi
 
 sign_app_binaries
 

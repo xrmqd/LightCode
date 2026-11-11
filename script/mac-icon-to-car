@@ -1,20 +1,23 @@
-#!/bin/bash
-# https://www.hendrik-erz.de/post/supporting-liquid-glass-icons-in-apps-without-xcode
+#!/usr/bin/env bash
+set -euo pipefail
 
-ICON_PATH="./crates/gram/resources/AppIcon.icon"
-OUTPUT_PATH="./target"
-PLIST_PATH="$OUTPUT_PATH/assetcatalog_generated_info.plist"
-DEVELOPMENT_REGION="en" # Change if necessary
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+icon_path="$repo_root/crates/gram/resources/AppIcon.icon"
+output_path="${1:-$repo_root/target/app-icon-assets}"
+plist_path="$output_path/assetcatalog_generated_info.plist"
 
-# Adapted from https://github.com/electron/packager/pull/1806/files
-actool $ICON_PATH --compile $OUTPUT_PATH \
+mkdir -p "$output_path"
+
+# The asset name must match both the .icon filename and CFBundleIconName.
+xcrun actool "$icon_path" --compile "$output_path" \
   --output-format human-readable-text --notices --warnings --errors \
-  --output-partial-info-plist $PLIST_PATH \
-  --app-icon Icon --include-all-app-icons \
+  --output-partial-info-plist "$plist_path" \
+  --app-icon AppIcon --include-all-app-icons \
   --enable-on-demand-resources NO \
-  --development-region $DEVELOPMENT_REGION \
+  --development-region en \
   --target-device mac \
   --minimum-deployment-target 26.0 \
   --platform macosx
 
-rm $PLIST_PATH
+test -s "$output_path/Assets.car"
+test -s "$plist_path"

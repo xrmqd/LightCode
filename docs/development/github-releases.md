@@ -1,7 +1,7 @@
 # Сборки и релизы LightCode на GitHub
 
-Workflow `.github/workflows/ci.yaml` собирает только macOS на стандартных
-GitHub-hosted runners: `macos-26` (Apple Silicon) и `macos-26-intel` (Intel).
+Workflow `.github/workflows/ci.yaml` собирает macOS только для Apple Silicon
+на стандартном GitHub-hosted runner `macos-26`. Сборка для Intel временно отключена.
 Linux используется только для загрузки готовых файлов в релиз, без сборки редактора.
 Workflow для Codeberg/Forgejo удалены; шаблоны issues сохранены.
 
@@ -12,9 +12,9 @@ Workflow для Codeberg/Forgejo удалены; шаблоны issues сохр�
    а не из имени тега.
 2. Закоммить изменения, создай тег, например `v3.5.1-fork.1`, и отправь его
    в свой GitHub-репозиторий (`origin`). Теги не следует переносить на другой коммит.
-3. GitHub Actions соберёт обе архитектуры. После успеха обеих сборок создаст
-   GitHub Release и приложит DMG, remote-server, архив соответствующих исходников
-   и контрольные суммы. Теги с дефисом создают prerelease.
+3. GitHub Actions соберёт версию для Apple Silicon. После успешной сборки создаст
+   GitHub Release и приложит `LightCode.dmg`, remote-server, архив соответствующих
+   исходников и контрольные суммы. Теги с дефисом создают prerelease.
 
 Для проверки открой Actions → LightCode macOS builds and releases → Run workflow.
 Без поля `tag` сборка выбранной ветки сохранит файлы только в Artifacts
@@ -39,9 +39,12 @@ workflow должен иметь возможность получить `conten
 Полный Xcode и Metal toolchain устанавливаются на раннере; Rust берётся из
 `rust-toolchain.toml`, зависимости Cargo фиксируются через `--locked`.
 
-Имена пакетов: `LightCode-aarch64.dmg`, `LightCode-x86_64.dmg`,
-`lightcode-remote-server-macos-*.gz`, `LightCode-source.tar.gz`.
+Установщик всегда называется `LightCode.dmg`, приложение — `LightCode.app`.
+В Artifacts установщик лежит в архиве `macos-aarch64`.
+В GitHub Releases публикуется непосредственно `LightCode.dmg` для Apple Silicon.
+В релиз также входят `lightcode-remote-server-macos-aarch64.gz`,
+`LightCode-source.tar.gz` и `SHA256SUMS.txt`.
 Адрес собственного репозитория и точный тег встраиваются workflow через
 `LIGHTCODE_REPOSITORY_URL` и `LIGHTCODE_RELEASE_TAG`; SSH скачивает сервер
 только из релиза этого форка, а не из Gram. Готовые remote-server сейчас
-собираются только для macOS; для Linux нужна отдельная сборка.
+собираются только для macOS на Apple Silicon; для Intel и Linux нужна отдельная сборка.

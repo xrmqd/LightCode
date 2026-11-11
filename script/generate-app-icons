@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""Export legacy app icons from the native Icon Composer artwork.
+
+Requires rsvg-convert (librsvg). The .icon bundle itself remains vector-based;
+macOS supplies its mask, lighting, and appearance handling at runtime.
+"""
+
+import argparse
+import json
+from pathlib import Path
+import shutil
+import struct
+import subprocess
+import tempfile
+import xml.etree.ElementTree as ET
+
+
+def color(fill):
+    space, components = fill["solid"].split(":", 1)
+    assert space == "srgb", "Fallback exporter expects sRGB colors"
+    values = [float(value) for value in components.split(",")]
+    assert len(values) == 4 and values[3] == 1
+    return "#" + "".join(f"{round(value * 255):02X}" for value in values[:3])
+
+
+def fill_for(item, appearance):
+    for variant in item.get("fill-specializations", []):
+        if variant.get("appearance") == appearance:
+            return color(variant["value"])
+    return color(item["fill"])
+
+
+def mix(hex_color, target, amount):
+    return "#" + "".join(
+        f"{round(int(hex_color[i:i + 2], 16) * (1 - amount) + target * amount):02X}"
+        for i in (1, 3, 5)
+    )
+
+
+def fallback_svg(mark, background, foreground):
+    # This restrained relief is only for legacy raster exports. The native
+    # .icon contains flat paths so macOS can render Liquid Glass itself.
+    glyphs = mark.split(">", 1)[1].rsplit("</svg>", 1)[0]
+    glyphs = glyphs.replace('fill="#222624"', 'fill="url(#glyph-fill)"')
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="tile-fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="{mix(background, 255, 0.025)}"/>
+      <stop offset="1" stop-color="{mix(background, 0, 0.025)}"/>
+    </linearGradient>
+    <linearGradient id="glyph-fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="{mix(foreground, 255, 0.035)}"/>
+      <stop offset="1" stop-color="{mix(foreground, 0, 0.025)}"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.12"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.025"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.08"/>
+    </linearGradient>
+    <filter id="relief" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <rect x="96" y="96" width="832" height="832" rx="186" fill="url(#tile-fill)"/>
+  <rect x="97" y="97" width="830" height="830" rx="185" fill="none" stroke="url(#edge)" stroke-width="2"/>
+  <g transform="translate(96 96) scale(0.8125)" filter="url(#relief)">{glyphs}</g>
+</svg>
+'''
+
+
+def render(converter, svg, output, size):
+    subprocess.run(
+        [converter, "--width", str(size), "--height", str(size), "--output", str(output), str(svg)],
+        check=True,
+    )
+
+
+def write_ico(converter, svg, output):
+    sizes = [16, 32, 48, 64, 128, 256]
+    with tempfile.TemporaryDirectory(prefix="lightcode-icon-") as temporary:
+        images = []
+        for size in sizes:
+            png = Path(temporary) / f"{size}.png"
+            render(converter, svg, png, size)
+            images.append(png.read_bytes())
+    offset = 6 + 16 * len(sizes)
+    entries = []
+    for size, image in zip(sizes, images):
+        dimension = 0 if size == 256 else size
+        entries.append(struct.pack("<BBBBHHII", dimension, dimension, 0, 0, 1, 32, len(image), offset))
+        offset += len(image)
+    output.write_bytes(struct.pack("<HHH", 0, 1, len(sizes)) + b"".join(entries) + b"".join(images))
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--resources",
+        type=Path,
+        default=Path(__file__).resolve().parent.parent / "crates/gram/resources",
+    )
+    resources = parser.parse_args().resources
+    converter = shutil.which("rsvg-convert")
+    if converter is None:
+        parser.error("Install librsvg to provide rsvg-convert, then run this script again")
+
+    native = resources / "AppIcon.icon"
+    document = json.loads((native / "icon.json").read_text())
+    layer = document["groups"][0]["layers"][0]
+    mark = (native / "Assets" / layer["image-name"]).read_text()
+    assert ET.fromstring(mark).get("viewBox") == "0 0 1024 1024"
+
+    for appearance in ("dark", "light"):
+        svg = resources / f"app-icon-{appearance}.svg"
+        svg.write_text(fallback_svg(mark, fill_for(document, appearance), fill_for(layer, appearance)))
+        prefix = "app-icon" if appearance == "dark" else "app-icon-light"
+        for size, suffix in ((512, ""), (1024, "@2x")):
+            render(converter, svg, resources / f"{prefix}{suffix}.png", size)
+
+    for suffix in ("", "@2x"):
+        shutil.copyfile(resources / f"app-icon{suffix}.png", resources / f"app-icon-dev{suffix}.png")
+    windows = resources / "windows"
+    windows.mkdir(exist_ok=True)
+    write_ico(converter, resources / "app-icon-dark.svg", windows / "app-icon.ico")
+    shutil.copyfile(windows / "app-icon.ico", windows / "app-icon-dev.ico")
+    print("Exported dark/light SVG and PNG icons, development icons, and Windows ICOs.")
+
+
+if __name__ == "__main__":
+    main()

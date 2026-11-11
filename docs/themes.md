@@ -1,7 +1,8 @@
 # Themes
 
-Gram comes with a number of built-in themes, with more themes available as
-extensions.
+LightCode starts with **LightCode Graphite**, a dark theme with a graphite
+background and distinct colors for keywords, functions, strings, and types.
+Other built-in themes remain available in the Theme Selector.
 
 ## Selecting a Theme
 
@@ -24,15 +25,19 @@ Your selected theme is stored in your settings file. You can open your settings
 file from the command palette with {#action gram::OpenSettingsFile} (bound to
 {#kb gram::OpenSettingsFile}).
 
-By default, Gram maintains two themes: one for light mode and one for dark mode.
-You can set the mode to `"dark"` or `"light"` to ignore the current system mode.
+The default setting is `"theme": "LightCode Graphite"`, regardless of the system
+appearance. Existing settings keep any theme you have already selected.
+
+To follow the system appearance, configure separate light and dark themes as
+shown below. You can also set the mode to `"dark"` or `"light"` to ignore the
+current system mode.
 
 ```json
 {
   "theme": {
     "mode": "system",
     "light": "One Light",
-    "dark": "One Dark",
+    "dark": "LightCode Graphite",
   },
 }
 ```

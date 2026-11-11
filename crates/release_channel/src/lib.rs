@@ -8,11 +8,13 @@ use gpui::{App, Global, SemanticVersion};
 
 /// stable | dev
 pub static RELEASE_CHANNEL_NAME: LazyLock<String> = LazyLock::new(|| {
+    let compiled_channel = option_env!("GRAM_RELEASE_CHANNEL")
+        .unwrap_or(include_str!("../../gram/RELEASE_CHANNEL"))
+        .trim();
     if cfg!(debug_assertions) {
-        env::var("GRAM_RELEASE_CHANNEL")
-            .unwrap_or_else(|_| include_str!("../../gram/RELEASE_CHANNEL").trim().to_string())
+        env::var("GRAM_RELEASE_CHANNEL").unwrap_or_else(|_| compiled_channel.to_string())
     } else {
-        include_str!("../../gram/RELEASE_CHANNEL").trim().to_string()
+        compiled_channel.to_string()
     }
 });
 

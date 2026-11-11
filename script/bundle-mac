@@ -70,11 +70,16 @@ done
 
 shift $((OPTIND - 1))
 
-# Get release channel
-pushd crates/gram
-channel=$(<RELEASE_CHANNEL)
+# Persist the selected channel in the compiled app and bundle metadata.
+channel="${LIGHTCODE_RELEASE_CHANNEL:-$(<crates/gram/RELEASE_CHANNEL)}"
+case "$channel" in
+stable|dev) ;;
+*)
+    echo "Unsupported release channel: $channel" >&2
+    exit 1
+    ;;
+esac
 export GRAM_RELEASE_CHANNEL="${channel}"
-popd
 
 export GRAM_BUNDLE=true
 
@@ -222,7 +227,7 @@ function sign_app_binaries() {
     fi
 
     if [[ "$target_dir" = "debug" ]]; then
-        echo "Debug build detected - skipping DMG creation and signing"
+        echo "Debug build detected - skipping DMG creation"
         if [ "$local_install" = false ]; then
             echo "Created application bundle:"
             echo "$app_path"
@@ -283,6 +288,6 @@ fi
 
 sign_app_binaries
 
-sign_binary "target/$target_triple/release/remote_server"
-gzip -9 -f --to-stdout "target/${target_triple}/release/remote_server" \
+sign_binary "target/$target_triple/$target_dir/remote_server"
+gzip -9 -f --to-stdout "target/${target_triple}/${target_dir}/remote_server" \
     > "target/lightcode-remote-server-macos-${arch_suffix}.gz"

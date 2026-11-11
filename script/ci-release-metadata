@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""Select the Rust profile, application channel, and release for a CI event."""
+
+import os
+from pathlib import Path
+import subprocess
+import tomllib
+
+
+def main():
+    repo = Path(__file__).resolve().parent.parent
+    version = tomllib.loads((repo / "Cargo.toml").read_text())["workspace"]["package"]["version"]
+    ref_type = os.environ["GITHUB_REF_TYPE"]
+    ref_name = os.environ["GITHUB_REF_NAME"]
+    run_number = os.environ["GITHUB_RUN_NUMBER"]
+    if not run_number.isdecimal() or int(run_number) < 1:
+        raise ValueError("GITHUB_RUN_NUMBER must be a positive integer")
+
+    explicit_tag = os.environ.get("INPUT_TAG", "")
+    tag = explicit_tag or (ref_name if ref_type == "tag" else "")
+    publish = bool(tag) or (ref_type == "branch" and ref_name in ("main", "dev"))
+    is_dev = tag.startswith("dev-") if tag else ref_type == "branch" and ref_name == "dev"
+    prerelease = is_dev or bool(tag and "-" in tag)
+
+    if publish and not tag:
+        tag = f"dev-{version}.{run_number}" if is_dev else f"v{version}+build.{run_number}"
+    if tag:
+        subprocess.run(["git", "check-ref-format", f"refs/tags/{tag}"], cwd=repo, check=True)
+
+    profile = "debug" if is_dev else "release"
+    channel = "dev" if is_dev else "stable"
+    package = "LightCode-Dev.zip" if is_dev else "LightCode.dmg"
+    title = f"LightCode{' Dev' if is_dev else ''} {version} (build {run_number})"
+    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
+    outputs = {
+        "publish": str(publish).lower(),
+        "prerelease": str(prerelease).lower(),
+        "tag": tag,
+        "title": title,
+        "commit": commit,
+        "profile": profile,
+        "package": package,
+    }
+    environment = {
+        "LIGHTCODE_RELEASE_TAG": tag,
+        "LIGHTCODE_RELEASE_CHANNEL": channel,
+        "GRAM_RELEASE_CHANNEL": channel,
+        "BUILD_PROFILE": profile,
+        "INSTALLER_NAME": package,
+    }
+    for destination, values in (("GITHUB_OUTPUT", outputs), ("GITHUB_ENV", environment)):
+        with Path(os.environ[destination]).open("a") as stream:
+            for key, value in values.items():
+                stream.write(f"{key}={value}\n")
+    print(f"{profile}/{channel}: {tag or 'artifacts only'}")
+
+
+if __name__ == "__main__":
+    main()

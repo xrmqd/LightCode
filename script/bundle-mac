@@ -83,6 +83,9 @@ export GRAM_RELEASE_CHANNEL="${channel}"
 
 export GRAM_BUNDLE=true
 
+# Catch invalid plist fragments before installing tools or compiling Rust.
+./script/validate-macos-plist
+
 if [[ "$do_build" = "true" ]]; then
     cargo install --locked --version 0.11.0 cargo-bundle
 fi
@@ -137,6 +140,8 @@ app_path=$(cargo bundle ${build_flag} --target "$target_triple" --format osx | x
 mv Cargo.toml.backup Cargo.toml
 popd
 echo "Bundled ${app_path}"
+plist_file="${app_path}/Contents/Info.plist"
+./script/validate-macos-plist "$plist_file"
 
 if [[ -n "${APPLE_ID:-}" && -n "${APPLE_PASSWORD_GRAM:-}" && -n "${APPLE_TEAM_ID:-}" && -n "${APPLE_SIGNING_KEY}" ]]; then
     echo "Enabling code signing!"
@@ -282,7 +287,6 @@ function sign_binary() {
 cp target/"${target_triple}"/${target_dir}/gram "${app_path}/Contents/MacOS/gram"
 cp target/"${target_triple}"/${target_dir}/cli "${app_path}/Contents/MacOS/cli"
 cp "$icon_assets_directory/Assets.car" "${app_path}/Contents/Resources/Assets.car"
-plist_file="${app_path}/Contents/Info.plist"
 # Use the layered icon on macOS 26+, retaining Cargo Bundle's legacy ICNS.
 if ! /usr/libexec/PlistBuddy -c "Set :CFBundleIconName AppIcon" "$plist_file" 2>/dev/null; then
     /usr/libexec/PlistBuddy -c "Add :CFBundleIconName string AppIcon" "$plist_file"

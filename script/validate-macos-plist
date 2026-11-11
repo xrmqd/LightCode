@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""Validate Cargo Bundle's macOS plist fragments, or a generated Info.plist.
+
+osx_info_plist_exts contains dictionary entries, not complete plist documents.
+Cargo Bundle 0.11.0 inserts these fragments inside its generated <dict>.
+"""
+
+import argparse
+from pathlib import Path
+import plistlib
+import sys
+import tomllib
+from xml.parsers.expat import ExpatError
+
+
+def parse_fragments(contents):
+    # Match Cargo Bundle 0.11.0's formatting of extension contents.
+    entries = "".join(content.replace("&", "&amp;") for content in contents)
+    return plistlib.loads(
+        ('<?xml version="1.0" encoding="UTF-8"?>\n'
+         '<plist version="1.0"><dict>\n' + entries + '</dict></plist>').encode("utf-8")
+    )
+
+
+def validate_extensions(manifest):
+    metadata = tomllib.loads(manifest.read_text(encoding="utf-8"))["package"]["metadata"]
+    for channel in ("stable", "dev"):
+        fragments = []
+        for pattern in metadata[f"bundle-{channel}"]["osx_info_plist_exts"]:
+            paths = sorted(manifest.parent.glob(pattern))
+            if not paths:
+                raise ValueError(f"{channel}: no plist extensions match {pattern}")
+            for path in paths:
+                content = path.read_text(encoding="utf-8")
+                try:
+                    parse_fragments([content])
+                except (ValueError, ExpatError, plistlib.InvalidFileException) as error:
+                    raise ValueError(
+                        f"{path}: expected dictionary entries without XML, <plist>, or outer <dict> wrappers: {error}"
+                    ) from error
+                fragments.append(content)
+        parse_fragments(fragments)
+        print(f"Validated macOS {channel} metadata: {len(fragments)} plist fragments")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("plist", nargs="?", type=Path, help="validate a generated Info.plist instead of source fragments")
+    parser.add_argument("--manifest", type=Path,
+                        default=Path(__file__).resolve().parent.parent / "crates/gram/Cargo.toml")
+    args = parser.parse_args()
+    try:
+        if args.plist is None:
+            validate_extensions(args.manifest)
+        else:
+            with args.plist.open("rb") as file:
+                metadata = plistlib.load(file)
+            if not isinstance(metadata, dict):
+                raise ValueError(f"{args.plist}: Info.plist must contain a dictionary")
+            print(f"Validated {args.plist}")
+    except (OSError, ValueError, KeyError, ExpatError, plistlib.InvalidFileException) as error:
+        print(f"Invalid macOS bundle metadata: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

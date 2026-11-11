@@ -237,7 +237,10 @@ impl Editor {
         let snapshot = self.buffer.read(cx).snapshot(cx);
         let inlay = Inlay {
             id: GHOST_ID,
-            position: snapshot.anchor_before(suggestion.target.cursor),
+            // Right-biased inlays are displayed after the caret at this buffer
+            // position. A left-biased inlay would move the visible caret past
+            // the suggestion, even though the buffer selection is unchanged.
+            position: snapshot.anchor_after(suggestion.target.cursor),
             content: InlayContent::Text(Rope::from(text.as_str())),
         };
         if let Some(service) = Copilot::global(cx) {
@@ -329,5 +332,85 @@ impl Editor {
         let len = suggestion.items.len();
         suggestion.selected = (suggestion.selected + if forward { 1 } else { len - 1 }) % len;
         self.render_copilot(cx);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{display_map::ToDisplayPoint, editor_tests::init_test, test::editor_test_context::EditorTestContext};
+    use gpui::TestAppContext;
+
+    #[gpui::test]
+    async fn test_copilot_preview_keeps_caret_before_suggestion(cx: &mut TestAppContext) {
+        init_test(cx, |_| {});
+        let mut cx = EditorTestContext::new(cx).await;
+
+        for (state, suggestions) in [
+            ("ˇ", ["hello", "hello\nworld"]),
+            ("fn maˇin() {}", ["ready", "ready\n    // next line"]),
+            (r#"let name = "Прˇивет";"#, ["🦀", "🦀\nмир"]),
+            ("fn main() {\n    ˇ\n}", ["let value = 1;", "let value = 1;\n    value"]),
+        ] {
+            cx.set_state(state);
+            cx.update_editor(|editor, window, cx| {
+                let (_, target) = editor.copilot_context(window, cx).unwrap();
+                let snapshot = editor.display_snapshot(cx);
+                let cursor = target.cursor;
+                let caret = cursor.to_display_point(&snapshot);
+                let source = editor.text(cx);
+                editor.copilot.visible = Some(VisibleSuggestion {
+                    target,
+                    items: suggestions
+                        .iter()
+                        .map(|text| {
+                            (
+                                Completion {
+                                    insert_text: (*text).into(),
+                                    range: None,
+                                    command: None,
+                                    extra: Default::default(),
+                                },
+                                (*text).into(),
+                            )
+                        })
+                        .collect(),
+                    selected: 0,
+                });
+                editor.render_copilot(cx);
+
+                // Cycling replaces the preview without moving the caret, even
+                // when the new suggestion spans several lines.
+                for text in suggestions {
+                    let mut preview = source.clone();
+                    preview.insert_str(cursor.0, text);
+                    assert_eq!(editor.display_text(cx), preview);
+                    assert_eq!(editor.text(cx), source);
+                    let snapshot = editor.display_snapshot(cx);
+                    assert_eq!(editor.selections.display_ranges(&snapshot), vec![caret..caret]);
+                    assert_eq!(
+                        editor.selections.ranges::<MultiBufferOffset>(&snapshot),
+                        vec![cursor..cursor]
+                    );
+                    editor.cycle_copilot(true, cx);
+                }
+
+                assert!(editor.dismiss_copilot(cx));
+                assert_eq!(editor.display_text(cx), source);
+                let snapshot = editor.display_snapshot(cx);
+                assert_eq!(editor.selections.display_ranges(&snapshot), vec![caret..caret]);
+
+                editor.insert("x", window, cx);
+                let mut edited = source;
+                edited.insert_str(cursor.0, "x");
+                assert_eq!(editor.text(cx), edited);
+                let snapshot = editor.display_snapshot(cx);
+                let after = cursor + 1;
+                assert_eq!(
+                    editor.selections.ranges::<MultiBufferOffset>(&snapshot),
+                    vec![after..after]
+                );
+            });
+        }
     }
 }

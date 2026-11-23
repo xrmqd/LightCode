@@ -22,10 +22,10 @@
       "ctrl-alt-enter": ["picker::ConfirmInput", { "secondary": true }],
       "shift-escape": "workspace::ToggleZoom",
       "open": "workspace::Open",
-      "ctrl-=": ["gram::IncreaseBufferFontSize", { "persist": false }],
-      "ctrl-+": ["gram::IncreaseBufferFontSize", { "persist": false }],
-      "ctrl--": ["gram::DecreaseBufferFontSize", { "persist": false }],
-      "ctrl-0": ["gram::ResetBufferFontSize", { "persist": false }],
+      "ctrl-=": ["lcode::IncreaseBufferFontSize", { "persist": false }],
+      "ctrl-+": ["lcode::IncreaseBufferFontSize", { "persist": false }],
+      "ctrl--": ["lcode::DecreaseBufferFontSize", { "persist": false }],
+      "ctrl-0": ["lcode::ResetBufferFontSize", { "persist": false }],
       "f4": "debugger::Start",
       "shift-f5": "debugger::Stop",
       "ctrl-shift-f5": "debugger::RerunSession",
@@ -33,7 +33,7 @@
       "f7": "debugger::StepOver",
       "ctrl-f11": "debugger::StepInto",
       "shift-f11": "debugger::StepOut",
-      "f11": "gram::ToggleFullScreen",
+      "f11": "lcode::ToggleFullScreen",
     },
   },
   {
@@ -560,10 +560,10 @@
     "context": "Onboarding",
     "use_key_equivalents": true,
     "bindings": {
-      "ctrl-=": ["gram::IncreaseUiFontSize", { "persist": false }],
-      "ctrl-+": ["gram::IncreaseUiFontSize", { "persist": false }],
-      "ctrl--": ["gram::DecreaseUiFontSize", { "persist": false }],
-      "ctrl-0": ["gram::ResetUiFontSize", { "persist": false }],
+      "ctrl-=": ["lcode::IncreaseUiFontSize", { "persist": false }],
+      "ctrl-+": ["lcode::IncreaseUiFontSize", { "persist": false }],
+      "ctrl--": ["lcode::DecreaseUiFontSize", { "persist": false }],
+      "ctrl-0": ["lcode::ResetUiFontSize", { "persist": false }],
       "ctrl-enter": "onboarding::Finish",
     },
   },
@@ -571,10 +571,10 @@
     "context": "Welcome",
     "use_key_equivalents": true,
     "bindings": {
-      "ctrl-=": ["gram::IncreaseUiFontSize", { "persist": false }],
-      "ctrl-+": ["gram::IncreaseUiFontSize", { "persist": false }],
-      "ctrl--": ["gram::DecreaseUiFontSize", { "persist": false }],
-      "ctrl-0": ["gram::ResetUiFontSize", { "persist": false }],
+      "ctrl-=": ["lcode::IncreaseUiFontSize", { "persist": false }],
+      "ctrl-+": ["lcode::IncreaseUiFontSize", { "persist": false }],
+      "ctrl--": ["lcode::DecreaseUiFontSize", { "persist": false }],
+      "ctrl-0": ["lcode::ResetUiFontSize", { "persist": false }],
       "ctrl-1": ["welcome::OpenRecentProject", 0],
       "ctrl-2": ["welcome::OpenRecentProject", 1],
       "ctrl-3": ["welcome::OpenRecentProject", 2],
@@ -616,5 +616,18 @@
       "ctrl-1": "image_viewer::ZoomToActualSize",
       "ctrl-shift-0": "image_viewer::FitToView",
     },
+  },
+  {
+    "context": "Editor && copilot_suggestion",
+    "bindings": {
+      "tab": "copilot::Accept",
+      "alt-enter": "copilot::Accept"
+    }
+  },
+  {
+    "context": "notebook && !showing_completions",
+    "bindings": {
+      "shift-enter": "notebook::RunSelectedCell"
+    }
   },
 ]

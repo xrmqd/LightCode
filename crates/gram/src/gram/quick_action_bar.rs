@@ -49,6 +49,9 @@ impl QuickActionBar {
         };
         this.apply_settings(cx);
         cx.observe_global::<SettingsStore>(Self::apply_settings).detach();
+        if let Some(store) = extension_host::ExtensionStore::try_global(cx) {
+            cx.observe(&store, |_, _, cx| cx.notify()).detach();
+        }
         this
     }
 
@@ -503,12 +506,19 @@ impl Render for QuickActionBar {
                 })
         };
 
+        let extension_buttons = self
+            .workspace
+            .upgrade()
+            .map(|workspace| super::extension_commands::toolbar_buttons(workspace.read(cx), cx))
+            .unwrap_or_default();
+
         h_flex()
             .id("quick action bar")
             .gap(DynamicSpacing::Base01.rems(cx))
             .children(self.render_repl_menu(cx))
             .children(self.render_preview_button(self.workspace.clone(), cx))
             .children(search_button)
+            .children(extension_buttons)
             .children(code_actions_dropdown)
             .children(editor_selections_dropdown)
             .child(editor_settings_dropdown)

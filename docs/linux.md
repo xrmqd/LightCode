@@ -244,7 +244,7 @@ Export this variable in `.bashrc` or similar if defining it globally.
 **Option B: Mesa Device Select** If using Mesa, list available GPUs:
 
 ```bash
-MESA_VK_DEVICE_SELECT=list gram --foreground
+MESA_VK_DEVICE_SELECT=list lcode --foreground
 ```
 
 Then export `MESA_VK_DEVICE_SELECT=xxxx:yyyy` to choose a specific device. To
@@ -258,7 +258,7 @@ fallback to Xwayland, additionally export `WAYLAND_DISPLAY=""`.
 Pass `--system-specs` to print system specifications:
 
 ```bash
-gram --system-specs
+lcode --system-specs
 ```
 
 The editor log is located at `~/.local/share/gram/logs/Gram.log`. To generate a
@@ -266,12 +266,12 @@ clean log for debugging graphics issues:
 
 ```bash
 truncate -s 0 ~/.local/share/gram/logs/Gram.log # Clear the log file
-GRAM_LOG=wgpu=info gram .
+GRAM_LOG=wgpu=info lcode .
 cat ~/.local/share/gram/logs/Gram.log
 # Copy the output
 ```
 
-Or, if the Gram CLI is set up:
+Or, if the LightCode CLI is set up:
 
 ```bash
 GRAM_LOG=wgpu=info /path/to/gram/cli --foreground .

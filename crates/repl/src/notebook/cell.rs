@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use editor::{Editor, EditorMode, MultiBuffer};
 use futures::future::Shared;
-use gpui::{App, Entity, Hsla, RetainAllImageCache, Task, TextStyleRefinement, image_cache, prelude::*};
+use gpui::{App, Entity, Focusable, Hsla, RetainAllImageCache, Task, TextStyleRefinement, image_cache, prelude::*};
 use language::{Buffer, Language, LanguageRegistry};
 use markdown_preview::{markdown_parser::parse_markdown, markdown_renderer::render_markdown_block};
 use nbformat::v4::{CellId, CellMetadata, CellType};
@@ -113,6 +113,22 @@ impl Cell {
                 let source = source.join("");
 
                 let entity = cx.new(|cx| {
+                    let buffer = cx.new(|cx| Buffer::local(source.clone(), cx));
+                    let multi_buffer = cx.new(|cx| MultiBuffer::singleton(buffer, cx));
+                    let editor = cx.new(|cx| {
+                        let mut editor = Editor::new(
+                            EditorMode::AutoHeight {
+                                min_lines: 1,
+                                max_lines: Some(1024),
+                            },
+                            multi_buffer,
+                            None,
+                            window,
+                            cx,
+                        );
+                        editor.set_show_gutter(false, cx);
+                        editor
+                    });
                     let markdown_parsing_task = {
                         let languages = languages.clone();
                         let source = source.clone();
@@ -131,6 +147,8 @@ impl Cell {
 
                     MarkdownCell {
                         mermaid_state: Default::default(),
+                        editor,
+                        editing: source.is_empty(),
                         markdown_parsing_task,
                         image_cache: RetainAllImageCache::new(cx),
                         languages: languages.clone(),
@@ -311,6 +329,8 @@ pub trait RunnableCell: RenderableCell {
 }
 
 pub struct MarkdownCell {
+    editor: Entity<Editor>,
+    editing: bool,
     id: CellId,
     metadata: CellMetadata,
     image_cache: Entity<RetainAllImageCache>,
@@ -365,46 +385,73 @@ impl RenderableCell for MarkdownCell {
     }
 }
 
+impl MarkdownCell {
+    pub(crate) fn editor(&self) -> Entity<Editor> {
+        self.editor.clone()
+    }
+
+    pub(crate) fn current_source(&self, cx: &App) -> String {
+        self.editor.read(cx).text(cx)
+    }
+
+    fn toggle_editing(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.editing = !self.editing;
+        if self.editing {
+            window.focus(&self.editor.focus_handle(cx), cx);
+        } else {
+            let source = self.current_source(cx);
+            let languages = self.languages.clone();
+            self.markdown_parsing_task = cx.spawn_in(window, async move |this, cx| {
+                let parsed = cx
+                    .background_spawn(async move { parse_markdown(&source, None, Some(languages)).await })
+                    .await;
+                this.update(cx, |cell, cx| {
+                    cell.parsed_markdown = Some(parsed);
+                    cx.notify();
+                })
+                .ok();
+            });
+        }
+        cx.notify();
+    }
+}
+
 impl Render for MarkdownCell {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let Some(parsed) = self.parsed_markdown.as_ref() else {
-            return div();
+        let content = if self.editing {
+            self.editor.clone().into_any_element()
+        } else {
+            let mut context =
+                markdown_preview::markdown_renderer::RenderContext::new(None, &self.mermaid_state, window, cx);
+            v_flex()
+                .image_cache(self.image_cache.clone())
+                .font_ui(cx)
+                .text_size(TextSize::Default.rems(cx))
+                .children(
+                    self.parsed_markdown
+                        .iter()
+                        .flat_map(|parsed| parsed.children.iter())
+                        .map(|child| div().relative().child(render_markdown_block(child, &mut context))),
+                )
+                .into_any_element()
         };
 
-        let mut markdown_render_context =
-            markdown_preview::markdown_renderer::RenderContext::new(None, &self.mermaid_state, window, cx);
-
         v_flex()
-            .size_full()
-            // TODO: Move base cell render into trait impl so we don't have to repeat this
+            .w_full()
             .children(self.cell_position_spacer(true, window, cx))
             .child(
                 h_flex()
                     .w_full()
-                    .pr_6()
-                    .rounded_xs()
                     .items_start()
-                    .gap(DynamicSpacing::Base08.rems(cx))
                     .bg(self.selected_bg_color(window, cx))
                     .child(self.gutter(window, cx))
                     .child(
-                        v_flex()
-                            .image_cache(self.image_cache.clone())
-                            .size_full()
-                            .flex_1()
-                            .p_3()
-                            .font_ui(cx)
-                            .text_size(TextSize::Default.rems(cx))
-                            .children(parsed.children.iter().map(|child| {
-                                div().relative().child(
-                                    div()
-                                        .relative()
-                                        .child(render_markdown_block(child, &mut markdown_render_context)),
-                                )
-                            })),
+                        v_flex().flex_1().gap_2().p_3().child(content).child(
+                            Button::new("edit-markdown", if self.editing { "Preview" } else { "Edit Markdown" })
+                                .on_click(cx.listener(|this, _, window, cx| this.toggle_editing(window, cx))),
+                        ),
                     ),
             )
-            // TODO: Move base cell render into trait impl so we don't have to repeat this
             .children(self.cell_position_spacer(false, window, cx))
     }
 }
@@ -422,6 +469,26 @@ pub struct CodeCell {
 }
 
 impl CodeCell {
+    pub(crate) fn editor(&self) -> Entity<Editor> {
+        self.editor.clone()
+    }
+
+    pub(crate) fn current_source(&self, cx: &App) -> String {
+        self.editor.read(cx).text(cx)
+    }
+
+    pub(crate) fn update_results(
+        &mut self,
+        outputs: &[nbformat::v4::Output],
+        count: Option<i32>,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.outputs = convert_outputs(outputs, window, cx);
+        self.execution_count = count;
+        cx.notify();
+    }
+
     pub fn is_dirty(&self, cx: &App) -> bool {
         self.editor.read(cx).buffer().read(cx).is_dirty(cx)
     }
@@ -503,14 +570,12 @@ impl RenderableCell for CodeCell {
     }
 
     fn control(&self, window: &mut Window, cx: &mut Context<Self>) -> Option<CellControl> {
-        let cell_control = if self.has_outputs() {
-            CellControl::new("rerun-cell", CellControlType::RerunCell)
+        let kind = if self.has_outputs() {
+            CellControlType::RerunCell
         } else {
-            CellControl::new("run-cell", CellControlType::RunCell)
-                .on_click(cx.listener(move |this, _, window, cx| this.run(window, cx)))
+            CellControlType::RunCell
         };
-
-        Some(cell_control)
+        Some(CellControl::new("run-cell", kind).on_click(cx.listener(move |this, _, window, cx| this.run(window, cx))))
     }
 
     fn selected(&self) -> bool {
@@ -534,7 +599,12 @@ impl RenderableCell for CodeCell {
 
 impl RunnableCell for CodeCell {
     fn run(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        println!("Running code cell: {}", self.id);
+        window.dispatch_action(
+            Box::new(super::RunCell {
+                id: self.id.to_string(),
+            }),
+            cx,
+        );
     }
 
     fn execution_count(&self) -> Option<i32> {

@@ -5,8 +5,8 @@ settings window or the `settings.json` file.
 
 These commands can be used to open the settings UI or file:
 
-- {#action gram::OpenSettings} ({#kb gram::OpenSettings})
-- {#action gram::OpenSettingsFile} ({#kb gram::OpenSettingsFile})
+- {#action lcode::OpenSettings} ({#kb lcode::OpenSettings})
+- {#action lcode::OpenSettingsFile} ({#kb lcode::OpenSettingsFile})
 
 See [Configuring Gram](./configuring-gram.md) for additional information and
 other non-visual settings.
@@ -16,7 +16,7 @@ other non-visual settings.
 [Themes](./themes.md) and [Icon themes](./icon-themes.md) can be installed as
 extensions. Most Zed extension themes and icon themes should be compatible.
 
-Command: {#action gram::Extensions}.
+Command: {#action lcode::Extensions}.
 
 Preview and choose the current theme using the theme selectors: {#action
 theme_selector::Toggle} ({#kb theme_selector::Toggle}) and {#action

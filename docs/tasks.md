@@ -77,11 +77,11 @@ Tasks can be defined:
 
 - in the global `tasks.jsonc` file; such tasks are available in all Gram
   projects you work on. This file is usually located in
-  `~/.config/lightcode/tasks.json`. You can edit them by using the `gram: open tasks`
+  `~/.config/lightcode/tasks.json`. You can edit them by using the `lcode: open tasks`
   action.
 - in the worktree-specific (local) `.gram/tasks.jsonc` file; such tasks are
   available only when working on a project with that worktree included. You can
-  edit worktree-specific tasks by using the `gram: open project tasks` action.
+  edit worktree-specific tasks by using the `lcode: open project tasks` action.
 - on the fly with [oneshot tasks](#oneshot-tasks). These tasks are
   project-specific and do not persist across sessions.
 - by language extension.

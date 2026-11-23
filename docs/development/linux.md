@@ -82,7 +82,7 @@ You can install a local build on your machine with:
 ```
 
 This will build gram and the cli in release mode and make them available at
-`~/.local/bin/gram`, installing .desktop files to `~/.local/share`.
+`~/.local/bin/lcode`, installing .desktop files to `~/.local/share`.
 
 > **_Note_**: If you encounter linker errors similar to the following:
 >
@@ -125,10 +125,10 @@ variable `WAYLAND_DISPLAY=''`.
 Gram has two main binaries:
 
 - You will need to build `crates/cli` and make its binary available in `$PATH`
-  with the name `gram`.
+  with the name `lcode`.
 - You will need to build `crates/gram` and put it at
   `$PATH/to/cli/../../libexec/gram-editor`. For example, if you are going to put
-  the cli at `~/.local/bin/gram` put gram at `~/.local/libexec/gram-editor`. As
+  the cli at `~/.local/bin/lcode` put gram at `~/.local/libexec/gram-editor`. As
   some linux distributions (notably Arch) discourage the use of `libexec`, you
   can also put this binary at `$PATH/to/cli/../../lib/gram/gram-editor` (e.g.
   `~/.local/lib/gram/gram-editor`) instead.
@@ -246,7 +246,7 @@ lot of CPU. It's not useful for debugging hangs or memory usage.
 
 - Make the output file user owned: run `sudo chown $USER:$USER perf.data`
 
-- Get build info: Run gram again and type `gram: about` in the command pallet to
+- Get build info: Run gram again and type `lcode: about` in the command pallet to
   get the exact commit.
 
 ### Later

@@ -174,7 +174,7 @@ You can also configure settings manually in the Settings Editor.
 To edit your settings:
 
 1. `Cmd+,` to open the Settings Editor.
-2. Run `gram: open settings` in the Command Palette.
+2. Run `lcode: open settings` in the Command Palette.
 
 Here’s how common VS Code settings translate:
 
@@ -355,7 +355,7 @@ Here are a few useful tweaks:
 ```
 
 **Custom Tasks**: Define build or run commands in your `tasks.jsonc` (accessed
-via command palette: `gram: open tasks`):
+via command palette: `lcode: open tasks`):
 
 ```json
 [
@@ -367,4 +367,4 @@ via command palette: `gram: open tasks`):
 ```
 
 **Bring over custom snippets** Copy your VS Code snippet JSON directly into
-Gram's snippets folder (`gram: configure snippets`).
+Gram's snippets folder (`lcode: configure snippets`).

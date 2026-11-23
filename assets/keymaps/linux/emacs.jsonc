@@ -1,6 +1,6 @@
 // documentation: lightcode://docs/key-bindings
 //
-// To see the default key bindings run `gram: open default keymap`
+// To see the default key bindings run `lcode: open default keymap`
 // from the command palette.
 [
   {
@@ -151,7 +151,7 @@
       "ctrl-x b": "tab_switcher::Toggle", // switch-to-buffer
       "ctrl-x ctrl-b": "tab_switcher::Toggle", // list-buffers
       // "ctrl-x ctrl-c": "workspace::CloseWindow" // in case you only want to exit the current Gram instance
-      "ctrl-x ctrl-c": "gram::Quit", // save-buffers-kill-terminal
+      "ctrl-x ctrl-c": "lcode::Quit", // save-buffers-kill-terminal
       "ctrl-x 5 0": "workspace::CloseWindow", // delete-frame
       "ctrl-x 5 2": "workspace::NewWindow", // make-frame-command
       "ctrl-x o": "workspace::ActivateNextPane", // other-window

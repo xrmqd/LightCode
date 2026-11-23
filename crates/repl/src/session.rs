@@ -237,13 +237,17 @@ impl Session {
                 entity_id,
                 working_directory,
                 self.fs.clone(),
-                session_view,
+                session_view.downgrade(),
                 window,
                 cx,
             ),
-            KernelSpecification::Remote(remote_kernel_specification) => {
-                RemoteRunningKernel::launch(remote_kernel_specification, working_directory, session_view, window, cx)
-            }
+            KernelSpecification::Remote(remote_kernel_specification) => RemoteRunningKernel::launch(
+                remote_kernel_specification,
+                working_directory,
+                session_view.downgrade(),
+                window,
+                cx,
+            ),
         };
 
         let pending_kernel = cx
@@ -772,5 +776,15 @@ impl Render for Session {
                     })),
             )
             .buttons(interrupt_button)
+    }
+}
+
+impl crate::kernels::KernelClient for Session {
+    fn on_kernel_message(&mut self, message: &JupyterMessage, window: &mut Window, cx: &mut Context<Self>) {
+        self.route(message, window, cx);
+    }
+
+    fn on_kernel_error(&mut self, error: String, cx: &mut Context<Self>) {
+        self.kernel_errored(error, cx);
     }
 }

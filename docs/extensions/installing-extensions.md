@@ -23,8 +23,8 @@ sysroot instead.
 
 You can manage your extensions by launching the Gram Extension Gallery.
 
-Press {#kb gram::Extensions} , open the command palette and select {#action
-gram::Extensions} or select "Gram > Extensions" from the menu bar.
+Press {#kb lcode::Extensions} , open the command palette and select {#action
+lcode::Extensions} or select "Gram > Extensions" from the menu bar.
 
 Here you can view the extensions that you currently have installed, and you can
 also install extensions for your local file system, or via a git URL. To get the
@@ -50,7 +50,7 @@ package is installed, but this is not verified.
 ## Installing Local Extensions
 
 From the extensions page, click the `Install Local` button (or the {#action
-gram::InstallExtensionFromFolder} action) and select the directory containing
+lcode::InstallExtensionFromFolder} action) and select the directory containing
 your extension. You should see the extension begin to install in the status bar.
 
 ## System-installed extensions
@@ -66,12 +66,12 @@ the editor.
 ## Installing Extensions From A Git URL
 
 From the extensions page, click the `Install From URL` button (or the {#action
-gram::InstallExtensionFromUrl} action) and enter the git url for the extension.
+lcode::InstallExtensionFromUrl} action) and enter the git url for the extension.
 You should see the extension begin to install in the status bar.
 
 > **Note:** The editor must be able to authenticate the git URL, but does not
 > support SSH authentication. Using a public URL such as an `http(s)` git URL is
-> recommended. Check the logs to debug ({#action gram::OpenLog}).
+> recommended. Check the logs to debug ({#action lcode::OpenLog}).
 
 ## Installation Location
 

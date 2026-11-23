@@ -3,8 +3,8 @@
 ## Predefined Keymaps
 
 If you're used to a specific editor's defaults, you can change your
-`base_keymap` through the settings window ({#kb gram::OpenSettings}) or directly
-through your `settings.jsonc` file ({#kb gram::OpenSettingsFile}).
+`base_keymap` through the settings window ({#kb lcode::OpenSettings}) or directly
+through your `settings.jsonc` file ({#kb lcode::OpenSettingsFile}).
 
 The following keymap styles are currently supported:
 
@@ -18,7 +18,7 @@ The following keymap styles are currently supported:
 - None (disables _all_ key bindings)
 
 This setting can also be changed via the command palette through the
-`gram: toggle base keymap selector` action.
+`lcode: toggle base keymap selector` action.
 
 You can also enable `vim_mode` or `helix_mode`, which add modal bindings. For
 more information, see the documentation for [Vim mode](./vim.md) and
@@ -28,8 +28,8 @@ application.
 
 ## Keymap Editor
 
-You can access the keymap editor through the {#kb gram::OpenKeymap} action or by
-running {#action gram::OpenKeymap} action from the command palette. You can
+You can access the keymap editor through the {#kb lcode::OpenKeymap} action or by
+running {#action lcode::OpenKeymap} action from the command palette. You can
 easily add or change a keybind for an action with the `Change Keybinding` or
 `Add Keybinding` button on the command pallets left bottom corner.
 
@@ -50,7 +50,7 @@ The keymap file is stored in the following locations for each platform:
 - macOS/Linux: `~/.config/lightcode/keymap.jsonc`
 - Windows: `~\AppData\Roaming\Gram/keymap.jsonc`
 
-You can open the keymap with the {#action gram::OpenKeymapFile} action from the
+You can open the keymap with the {#action lcode::OpenKeymapFile} action from the
 command palette.
 
 This file contains a JSON array of objects with `"bindings"`. If no `"context"`
@@ -114,7 +114,7 @@ A few examples:
 
 ```json
 "bindings": {
-  "cmd-k cmd-s": "gram::OpenKeymap", // matches ⌘-k then ⌘-s
+  "cmd-k cmd-s": "lcode::OpenKeymap", // matches ⌘-k then ⌘-s
   "space e": "editor::Complete", // type space then e
   "ç": "editor::Complete", // matches ⌥-c
   "shift shift": "file_finder::Toggle", // matches pressing and releasing shift twice

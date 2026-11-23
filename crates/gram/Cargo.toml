@@ -40,7 +40,7 @@ A code editor for humanoid apes and grumpy toads. \
 Gram is a fork of the Zed editor."""
 assets = [
   ["target/release/gram", "usr/libexec/gram-editor", "755"],
-  ["target/release/cli", "usr/bin/gram", "755"],
+  ["target/release/cli", "usr/bin/lcode", "755"],
   ["resources/gram.desktop", "usr/share/applications/app.liten.Gram.desktop", "644"],
   ["resources/app.liten.Gram.svg", "usr/share/icons/hicolor/scalable/apps/app.liten.Gram.svg", "644"],
   ["resources/app.liten.Gram-symbolic.svg", "usr/share/icons/hicolor/symbolic/apps/app.liten.Gram-symbolic.svg", "644"],
@@ -53,7 +53,7 @@ summary = "A code editor for humanoid apes and grumpy toads"
 url = "https://gram-editor.com"
 assets = [
   { source = "target/release/gram", dest = "/usr/libexec/gram-editor", mode = "755" },
-  { source = "target/release/cli", dest = "/usr/bin/gram", mode = "755" },
+  { source = "target/release/cli", dest = "/usr/bin/lcode", mode = "755" },
   { source = "resources/gram.desktop", dest = "/usr/share/applications/app.liten.Gram.desktop", mode = "644" },
   { source = "resources/app.liten.Gram.svg", dest = "/usr/share/icons/hicolor/scalable/apps/app.liten.Gram.svg", mode = "644" },
   { source = "resources/app.liten.Gram-symbolic.svg", dest = "/usr/share/icons/hicolor/symbolic/apps/app.liten.Gram-symbolic.svg", mode = "644" },
@@ -149,6 +149,7 @@ remote.workspace = true
 repl.workspace = true
 reqwest_client.workspace = true
 rope.workspace = true
+schemars.workspace = true
 search.workspace = true
 serde.workspace = true
 serde_json.workspace = true

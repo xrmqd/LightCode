@@ -13,12 +13,12 @@ where Gram gets its environment variables from and how they're used.
 ## Where does Gram get its environment variables from?
 
 How Gram was started — whether it's icon was clicked in the macOS Dock or in a
-Linux window manager, or whether it was started via the CLI `gram` that comes
+Linux window manager, or whether it was started via the CLI `lcode` that comes
 with Gram — influences which environment variables Gram can use.
 
 ### Launched from the CLI
 
-If Gram is opened via the CLI (`gram`), it will inherit the environment
+If Gram is opened via the CLI (`lcode`), it will inherit the environment
 variables from the surrounding shell session.
 
 That means if you do
@@ -31,7 +31,7 @@ $ zed .
 the environment variable `MY_ENV_VAR` is now available inside Gram. For example,
 in the built-in terminal.
 
-The CLI `gram` will _always_ pass along its environment to Gram, regardless of
+The CLI `lcode` will _always_ pass along its environment to Gram, regardless of
 whether a Gram instance was previously running or not.
 
 ### Launched via window manager, Dock, or launcher

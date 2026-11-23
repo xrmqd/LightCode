@@ -81,7 +81,7 @@ brew install elixir-ls
 3. Restart Gram
 
 > If `elixir-ls` is not running in an elixir project, check the error log via
-> the command palette action `gram: open log`. If you find an error message
+> the command palette action `lcode: open log`. If you find an error message
 > mentioning:
 > `invalid LSP message header "Shall I install Hex? (if running non-interactively, use \"mix local.hex --force\") [Yn]`,
 > you might need to install [`Hex`](https://hex.pm). You run `elixir-ls` from

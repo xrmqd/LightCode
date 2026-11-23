@@ -24,8 +24,8 @@ you like, you can install it using the repository URL from the Extensions page.
 ## Configuring Icon Themes
 
 Your selected icon theme is stored in your settings file. You can open your
-settings file from the command palette with {#action gram::OpenSettingsFile}
-(bound to {#kb gram::OpenSettingsFile}).
+settings file from the command palette with {#action lcode::OpenSettingsFile}
+(bound to {#kb lcode::OpenSettingsFile}).
 
 Just like with themes, Gram allows for configuring different icon themes for
 light and dark mode. You can set the mode to `"light"` or `"dark"` to ignore the

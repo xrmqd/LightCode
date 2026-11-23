@@ -22,8 +22,8 @@ many of them.
 ## Configuring a Theme
 
 Your selected theme is stored in your settings file. You can open your settings
-file from the command palette with {#action gram::OpenSettingsFile} (bound to
-{#kb gram::OpenSettingsFile}).
+file from the command palette with {#action lcode::OpenSettingsFile} (bound to
+{#kb lcode::OpenSettingsFile}).
 
 The default setting is `"theme": "LightCode Graphite"`, regardless of the system
 appearance. Existing settings keep any theme you have already selected.

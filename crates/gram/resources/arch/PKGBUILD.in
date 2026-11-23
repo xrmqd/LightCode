@@ -51,7 +51,7 @@ sha256sums=(.)
 package() {
     cd $srcdir/gram.app
 
-    install -Dm0755 bin/gram "$pkgdir/usr/bin/gram"
+    install -Dm0755 bin/lcode "$pkgdir/usr/bin/lcode"
     install -Dm0755 libexec/gram-editor "$pkgdir/usr/lib/gram/gram-editor"
     install -Dm0644 licenses.md "$pkgdir/usr/share/licenses/gram/licenses.md"
     install -Dm0644 share/applications/app.liten.Gram.desktop "$pkgdir/usr/share/applications/app.liten.Gram.desktop"

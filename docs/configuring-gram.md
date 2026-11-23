@@ -10,18 +10,18 @@ editor:
 
 ## Settings Editor
 
-The Settings Editor can be opened with the {#kb gram::OpenSettings} keybinding,
-or through the `gram: open settings` action in the command palette. Through it,
+The Settings Editor can be opened with the {#kb lcode::OpenSettings} keybinding,
+or through the `lcode: open settings` action in the command palette. Through it,
 you can customize your local, user settings as well as project settings.
 
 > Note that not all settings that Gram supports are available through the
 > Settings Editor yet. Some more intricate ones, such as language formatters,
 > can only be changed through the JSON settings file {#kb
-> gram::OpenSettingsFile}.
+> lcode::OpenSettingsFile}.
 
 ## User Settings File
 
-Your settings.jsonc file can be opened with {#kb gram::OpenSettingsFile}. By
+Your settings.jsonc file can be opened with {#kb lcode::OpenSettingsFile}. By
 default it is located at `~/.config/lightcode/settings.jsonc`, though if you have
 `XDG_CONFIG_HOME` in your environment on Linux it will be at
 `$XDG_CONFIG_HOME/lightcode/settings.json` instead.
@@ -32,7 +32,7 @@ configuration inside your projects.
 ### Default Settings
 
 In the Settings Editor, the values you see set are the default ones. You can
-also verify them in JSON by running {#action gram::OpenDefaultSettings} from the
+also verify them in JSON by running {#action lcode::OpenDefaultSettings} from the
 command palette.
 
 Extensions that provide language servers may also provide default settings for
@@ -41,7 +41,7 @@ those language servers.
 ## Project Settings File
 
 Similarly to user files, you can open your project settings file by running
-{#action gram::OpenProjectSettings} from the command palette. This will create a
+{#action lcode::OpenProjectSettings} from the command palette. This will create a
 `.gram` directory containing`.gram/settings.jsonc`.
 
 Although most projects will only need one settings file at the root, you can add

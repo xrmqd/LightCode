@@ -4,7 +4,7 @@
 
 1. Quit LightCode.
 2. Move `LightCode.app` from Applications to the Trash.
-3. If you installed the CLI, remove `/usr/local/bin/lightcode` only after
+3. If you installed the CLI, remove `/usr/local/bin/lcode` only after
    checking that it is a symlink to the LightCode application you removed.
 
 To remove LightCode's settings and data as well, remove these folders if present:

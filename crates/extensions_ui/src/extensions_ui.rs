@@ -44,7 +44,7 @@ pub enum ExtensionProvides {
 }
 
 actions!(
-    gram,
+    lcode,
     [
         /// Installs an extension from a local directory.
         InstallExtensionFromFolder,
@@ -55,7 +55,7 @@ actions!(
 
 /// Install an extension from a local path
 #[derive(PartialEq, Clone, Debug, Deserialize, JsonSchema, Action)]
-#[action(namespace = gram)]
+#[action(namespace = lcode)]
 #[serde(deny_unknown_fields)]
 pub struct InstallExtensionFromLocalPath {
     /// A local path to an extension
@@ -64,7 +64,7 @@ pub struct InstallExtensionFromLocalPath {
 
 /// Install an extension from a git repository
 #[derive(PartialEq, Clone, Debug, Deserialize, JsonSchema, Action)]
-#[action(namespace = gram)]
+#[action(namespace = lcode)]
 #[serde(deny_unknown_fields)]
 pub struct InstallExtensionFromGit {
     /// A git https url

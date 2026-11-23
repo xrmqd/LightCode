@@ -451,13 +451,13 @@ Then, in the Rust code for your extension, implement the
 `language_server_command` method on your extension:
 
 ```rust
-impl gram::Extension for MyExtension {
+impl lcode::Extension for MyExtension {
     fn language_server_command(
         &mut self,
         language_server_id: &LanguageServerId,
-        worktree: &gram::Worktree,
-    ) -> Result<gram::Command> {
-        Ok(gram::Command {
+        worktree: &lcode::Worktree,
+    ) -> Result<lcode::Command> {
+        Ok(lcode::Command {
             command: get_path_to_language_server_executable()?,
             args: get_args_for_language_server()?,
             env: get_env_for_language_server()?,

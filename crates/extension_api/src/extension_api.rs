@@ -62,6 +62,11 @@ pub trait Extension: Send + Sync {
     where
         Self: Sized;
 
+    /// Runs a named LightCode command. A returned string is shown to the user.
+    fn run_command(&mut self, _id: &str, _active_file: Option<&str>) -> Result<Option<String>> {
+        Err("Unknown extension command".into())
+    }
+
     /// Returns the command used to start the language server for the specified
     /// language.
     fn language_server_command(
@@ -261,6 +266,7 @@ mod wit {
     wit_bindgen::generate!({
         skip: ["init-extension"],
         path: "./wit/since_v0.6.0",
+        world: "lightcode-extension",
     });
 }
 
@@ -269,6 +275,10 @@ wit::export!(Component);
 struct Component;
 
 impl wit::Guest for Component {
+    fn run_command(id: String, path: Option<String>) -> Result<Option<String>> {
+        extension().run_command(&id, path.as_deref())
+    }
+
     fn language_server_command(language_server_id: String, worktree: &wit::Worktree) -> Result<wit::Command> {
         let language_server_id = LanguageServerId(language_server_id);
         extension().language_server_command(&language_server_id, worktree)

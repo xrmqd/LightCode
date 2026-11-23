@@ -1,6 +1,7 @@
 mod app_menus;
 pub mod component_preview;
 mod copilot_ui;
+pub mod extension_commands;
 mod migrate;
 mod open_listener;
 mod quick_action_bar;
@@ -77,7 +78,7 @@ use workspace::{CloseIntent, CloseProject, CloseWindow, with_active_or_new_works
 use workspace::{Pane, notifications::DetachAndPromptErr};
 
 actions!(
-    gram,
+    lcode,
     [
         /// Hides the application window.
         Hide,

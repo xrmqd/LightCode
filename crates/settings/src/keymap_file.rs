@@ -635,7 +635,7 @@ impl KeymapFile {
                 };
             }
             // if trying to remove a keybinding that is not user-defined, treat it as creating a binding
-            // that binds it to `gram::NoAction`
+            // that binds it to `lcode::NoAction`
             KeybindUpdateOperation::Remove {
                 target,
                 target_keybind_source,
@@ -1111,14 +1111,14 @@ mod tests {
             "[]",
             KeybindUpdateOperation::add(KeybindUpdateTarget {
                 keystrokes: &parse_keystrokes("ctrl-a"),
-                action_name: "gram::SomeAction",
+                action_name: "lcode::SomeAction",
                 context: None,
                 action_arguments: None,
             }),
             r#"[
                 {
                     "bindings": {
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                     }
                 }
             ]"#
@@ -1129,14 +1129,14 @@ mod tests {
             "[]",
             KeybindUpdateOperation::add(KeybindUpdateTarget {
                 keystrokes: &parse_keystrokes("\\ a"),
-                action_name: "gram::SomeAction",
+                action_name: "lcode::SomeAction",
                 context: None,
                 action_arguments: None,
             }),
             r#"[
                 {
                     "bindings": {
-                        "\\ a": "gram::SomeAction"
+                        "\\ a": "lcode::SomeAction"
                     }
                 }
             ]"#
@@ -1147,14 +1147,14 @@ mod tests {
             "[]",
             KeybindUpdateOperation::add(KeybindUpdateTarget {
                 keystrokes: &parse_keystrokes("ctrl-a"),
-                action_name: "gram::SomeAction",
+                action_name: "lcode::SomeAction",
                 context: None,
                 action_arguments: Some(""),
             }),
             r#"[
                 {
                     "bindings": {
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                     }
                 }
             ]"#
@@ -1165,26 +1165,26 @@ mod tests {
             r#"[
                 {
                     "bindings": {
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                     }
                 }
             ]"#
             .unindent(),
             KeybindUpdateOperation::add(KeybindUpdateTarget {
                 keystrokes: &parse_keystrokes("ctrl-b"),
-                action_name: "gram::SomeOtherAction",
+                action_name: "lcode::SomeOtherAction",
                 context: None,
                 action_arguments: None,
             }),
             r#"[
                 {
                     "bindings": {
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                     }
                 },
                 {
                     "bindings": {
-                        "ctrl-b": "gram::SomeOtherAction"
+                        "ctrl-b": "lcode::SomeOtherAction"
                     }
                 }
             ]"#
@@ -1195,27 +1195,27 @@ mod tests {
             r#"[
                 {
                     "bindings": {
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                     }
                 }
             ]"#
             .unindent(),
             KeybindUpdateOperation::add(KeybindUpdateTarget {
                 keystrokes: &parse_keystrokes("ctrl-b"),
-                action_name: "gram::SomeOtherAction",
+                action_name: "lcode::SomeOtherAction",
                 context: None,
                 action_arguments: Some(r#"{"foo": "bar"}"#),
             }),
             r#"[
                 {
                     "bindings": {
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                     }
                 },
                 {
                     "bindings": {
                         "ctrl-b": [
-                            "gram::SomeOtherAction",
+                            "lcode::SomeOtherAction",
                             {
                                 "foo": "bar"
                             }
@@ -1230,28 +1230,28 @@ mod tests {
             r#"[
                 {
                     "bindings": {
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                     }
                 }
             ]"#
             .unindent(),
             KeybindUpdateOperation::add(KeybindUpdateTarget {
                 keystrokes: &parse_keystrokes("ctrl-b"),
-                action_name: "gram::SomeOtherAction",
+                action_name: "lcode::SomeOtherAction",
                 context: Some("LightCode > Editor && some_condition = true"),
                 action_arguments: Some(r#"{"foo": "bar"}"#),
             }),
             r#"[
                 {
                     "bindings": {
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                     }
                 },
                 {
                     "context": "LightCode > Editor && some_condition = true",
                     "bindings": {
                         "ctrl-b": [
-                            "gram::SomeOtherAction",
+                            "lcode::SomeOtherAction",
                             {
                                 "foo": "bar"
                             }
@@ -1266,7 +1266,7 @@ mod tests {
             r#"[
                 {
                     "bindings": {
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                     }
                 }
             ]"#
@@ -1274,13 +1274,13 @@ mod tests {
             KeybindUpdateOperation::Replace {
                 target: KeybindUpdateTarget {
                     keystrokes: &parse_keystrokes("ctrl-a"),
-                    action_name: "gram::SomeAction",
+                    action_name: "lcode::SomeAction",
                     context: None,
                     action_arguments: None,
                 },
                 source: KeybindUpdateTarget {
                     keystrokes: &parse_keystrokes("ctrl-b"),
-                    action_name: "gram::SomeOtherAction",
+                    action_name: "lcode::SomeOtherAction",
                     context: None,
                     action_arguments: Some(r#"{"foo": "bar"}"#),
                 },
@@ -1289,13 +1289,13 @@ mod tests {
             r#"[
                 {
                     "bindings": {
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                     }
                 },
                 {
                     "bindings": {
                         "ctrl-b": [
-                            "gram::SomeOtherAction",
+                            "lcode::SomeOtherAction",
                             {
                                 "foo": "bar"
                             }
@@ -1310,7 +1310,7 @@ mod tests {
             r#"[
                 {
                     "bindings": {
-                        "a": "gram::SomeAction"
+                        "a": "lcode::SomeAction"
                     }
                 }
             ]"#
@@ -1318,13 +1318,13 @@ mod tests {
             KeybindUpdateOperation::Replace {
                 target: KeybindUpdateTarget {
                     keystrokes: &parse_keystrokes("a"),
-                    action_name: "gram::SomeAction",
+                    action_name: "lcode::SomeAction",
                     context: None,
                     action_arguments: None,
                 },
                 source: KeybindUpdateTarget {
                     keystrokes: &parse_keystrokes("ctrl-b"),
-                    action_name: "gram::SomeOtherAction",
+                    action_name: "lcode::SomeOtherAction",
                     context: None,
                     action_arguments: Some(r#"{"foo": "bar"}"#),
                 },
@@ -1334,7 +1334,7 @@ mod tests {
                 {
                     "bindings": {
                         "ctrl-b": [
-                            "gram::SomeOtherAction",
+                            "lcode::SomeOtherAction",
                             {
                                 "foo": "bar"
                             }
@@ -1349,7 +1349,7 @@ mod tests {
             r#"[
                 {
                     "bindings": {
-                        "\\ a": "gram::SomeAction"
+                        "\\ a": "lcode::SomeAction"
                     }
                 }
             ]"#
@@ -1357,13 +1357,13 @@ mod tests {
             KeybindUpdateOperation::Replace {
                 target: KeybindUpdateTarget {
                     keystrokes: &parse_keystrokes("\\ a"),
-                    action_name: "gram::SomeAction",
+                    action_name: "lcode::SomeAction",
                     context: None,
                     action_arguments: None,
                 },
                 source: KeybindUpdateTarget {
                     keystrokes: &parse_keystrokes("\\ b"),
-                    action_name: "gram::SomeOtherAction",
+                    action_name: "lcode::SomeOtherAction",
                     context: None,
                     action_arguments: Some(r#"{"foo": "bar"}"#),
                 },
@@ -1373,7 +1373,7 @@ mod tests {
                 {
                     "bindings": {
                         "\\ b": [
-                            "gram::SomeOtherAction",
+                            "lcode::SomeOtherAction",
                             {
                                 "foo": "bar"
                             }
@@ -1388,7 +1388,7 @@ mod tests {
             r#"[
                 {
                     "bindings": {
-                        "\\ a": "gram::SomeAction"
+                        "\\ a": "lcode::SomeAction"
                     }
                 }
             ]"#
@@ -1396,13 +1396,13 @@ mod tests {
             KeybindUpdateOperation::Replace {
                 target: KeybindUpdateTarget {
                     keystrokes: &parse_keystrokes("\\ a"),
-                    action_name: "gram::SomeAction",
+                    action_name: "lcode::SomeAction",
                     context: None,
                     action_arguments: None,
                 },
                 source: KeybindUpdateTarget {
                     keystrokes: &parse_keystrokes("\\ a"),
-                    action_name: "gram::SomeAction",
+                    action_name: "lcode::SomeAction",
                     context: None,
                     action_arguments: None,
                 },
@@ -1411,7 +1411,7 @@ mod tests {
             r#"[
                 {
                     "bindings": {
-                        "\\ a": "gram::SomeAction"
+                        "\\ a": "lcode::SomeAction"
                     }
                 }
             ]"#
@@ -1422,7 +1422,7 @@ mod tests {
             r#"[
                 {
                     "bindings": {
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                     }
                 }
             ]"#
@@ -1430,13 +1430,13 @@ mod tests {
             KeybindUpdateOperation::Replace {
                 target: KeybindUpdateTarget {
                     keystrokes: &parse_keystrokes("ctrl-a"),
-                    action_name: "gram::SomeNonexistentAction",
+                    action_name: "lcode::SomeNonexistentAction",
                     context: None,
                     action_arguments: None,
                 },
                 source: KeybindUpdateTarget {
                     keystrokes: &parse_keystrokes("ctrl-b"),
-                    action_name: "gram::SomeOtherAction",
+                    action_name: "lcode::SomeOtherAction",
                     context: None,
                     action_arguments: None,
                 },
@@ -1445,12 +1445,12 @@ mod tests {
             r#"[
                 {
                     "bindings": {
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                     }
                 },
                 {
                     "bindings": {
-                        "ctrl-b": "gram::SomeOtherAction"
+                        "ctrl-b": "lcode::SomeOtherAction"
                     }
                 }
             ]"#
@@ -1462,7 +1462,7 @@ mod tests {
                 {
                     "bindings": {
                         // some comment
-                        "ctrl-a": "gram::SomeAction"
+                        "ctrl-a": "lcode::SomeAction"
                         // some other comment
                     }
                 }
@@ -1471,13 +1471,13 @@ mod tests {
             KeybindUpdateOperation::Replace {
                 target: KeybindUpdateTarget {
                     keystrokes: &parse_keystrokes("ctrl-a"),
-                    action_name: "gram::SomeAction",
+                    action_name: "lcode::SomeAction",
                     context: None,
                     action_arguments: None,
                 },
                 source: KeybindUpdateTarget {
                     keystrokes: &parse_keystrokes("ctrl-b"),
-                    action_name: "gram::SomeOtherAction",
+                    action_name: "lcode::SomeOtherAction",
                     context: None,
                     action_arguments: Some(r#"{"foo": "bar"}"#),
                 },
@@ -1488,7 +1488,7 @@ mod tests {
                     "bindings": {
                         // some comment
                         "ctrl-b": [
-                            "gram::SomeOtherAction",
+                            "lcode::SomeOtherAction",
                             {
                                 "foo": "bar"
                             }

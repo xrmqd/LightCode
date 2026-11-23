@@ -49,13 +49,19 @@ pub(super) fn install(workspace: &mut Workspace, cx: &mut Context<Workspace>) ->
 }
 
 fn active_language(workspace: &Workspace, cx: &App) -> Option<String> {
-    workspace.active_item_as::<Editor>(cx)?.read(cx).copilot_language(cx)
+    workspace
+        .active_item_as::<Editor>(cx)?
+        .read(cx)
+        .active_language_lsp_id(cx)
 }
 
 fn enable_or_sign_in(sign_in: bool, window: &mut Window, cx: &mut Context<Workspace>) {
     let Some(service) = Copilot::global(cx) else {
         return;
     };
+    if !service.read(cx).installed() {
+        return;
+    }
     if service.read(cx).enabled() {
         service.update(cx, |service, cx| {
             if sign_in {
@@ -100,6 +106,9 @@ pub(super) struct CopilotStatusItem {
 impl Render for CopilotStatusItem {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let service = self.service.clone();
+        if !service.read(cx).installed() {
+            return div().into_any_element();
+        }
         let workspace = self.workspace.clone();
         let status = service.read(cx).status();
         let language_off = workspace
@@ -184,6 +193,7 @@ impl Render for CopilotStatusItem {
                     )
                 },
             )
+            .into_any_element()
     }
 }
 

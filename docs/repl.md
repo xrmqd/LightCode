@@ -1,6 +1,19 @@
 # REPL
 
-## Getting started
+## Jupyter notebooks
+
+Open an `.ipynb` file directly in LightCode. Use the kernel menu to select a
+Jupyter kernelspec or a project Python environment with `ipykernel`.
+Run an individual code cell using its run button or **Shift+Enter**, or run the
+whole notebook using **Run All**. A notebook keeps a kernel so later cells can
+use variables from earlier cells. The kernel menu offers interrupt, restart
+and refresh.
+
+The notebook editor supports editing code and Markdown, adding and moving cells,
+clearing outputs, and saving back to `.ipynb`. It renders text, errors and common
+image and table outputs. You can reopen the saved notebook in Jupyter.
+
+## Getting started with the REPL
 
 Bring the power of
 [Jupyter kernels](https://docs.jupyter.org/en/latest/projects/kernels.html) to

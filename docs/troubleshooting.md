@@ -14,18 +14,18 @@ When reporting issues or seeking help, it's useful to know your Gram version and
 system specifications. You can retrieve this information using the following
 actions from the command palette:
 
-- {#action gram::About}: Find your Gram version number
-- {#action gram::CopySystemSpecsIntoClipboard}: Populate your clipboard with
+- {#action lcode::About}: Find your Gram version number
+- {#action lcode::CopySystemSpecsIntoClipboard}: Populate your clipboard with
   Gram version number, operating system version, and hardware specs
 
 ## Gram Log
 
 Often, a good first place to look when troubleshooting any issue in Gram is the
 Gram log, which might contain clues about what's going wrong. You can review the
-most recent 1000 lines of the log by running the {#action gram::OpenLog} action
+most recent 1000 lines of the log by running the {#action lcode::OpenLog} action
 from the command palette. If you want to view the full file, you can reveal it
 in your operating system's native file manager via {#action
-gram::RevealLogInFileManager} from the command palette.
+lcode::RevealLogInFileManager} from the command palette.
 
 You'll find the Gram log in the respective location on each operating system:
 

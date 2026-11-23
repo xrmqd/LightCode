@@ -19,8 +19,8 @@
   {
     "context": "Editor",
     "bindings": {
-      "ctrl->": ["gram::IncreaseBufferFontSize", { "persist": true }],
-      "ctrl-<": ["gram::DecreaseBufferFontSize", { "persist": true }],
+      "ctrl->": ["lcode::IncreaseBufferFontSize", { "persist": true }],
+      "ctrl-<": ["lcode::DecreaseBufferFontSize", { "persist": true }],
       "ctrl-shift-j": "editor::JoinLines",
       "cmd-d": "editor::DuplicateSelection",
       "cmd-backspace": "editor::DeleteLine",

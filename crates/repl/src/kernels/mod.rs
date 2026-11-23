@@ -6,7 +6,7 @@ use futures::{
     future::Shared,
     stream,
 };
-use gpui::{App, Entity, Task, Window};
+use gpui::{App, Context, Entity, Task, Window};
 use language::LanguageName;
 pub use native_kernel::*;
 
@@ -154,6 +154,11 @@ pub fn python_env_kernel_specifications(
 
         anyhow::Ok(kernel_specs)
     }
+}
+
+pub(crate) trait KernelClient: Sized + 'static {
+    fn on_kernel_message(&mut self, message: &JupyterMessage, window: &mut Window, cx: &mut Context<Self>);
+    fn on_kernel_error(&mut self, error: String, cx: &mut Context<Self>);
 }
 
 pub trait RunningKernel: Send + Debug {

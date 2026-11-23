@@ -26,20 +26,20 @@
       "shift-escape": "workspace::ToggleZoom",
       "ctrl-o": "workspace::OpenFiles",
       "ctrl-k ctrl-o": "workspace::Open",
-      "ctrl-=": ["gram::IncreaseBufferFontSize", { "persist": false }],
-      "ctrl-shift-=": ["gram::IncreaseBufferFontSize", { "persist": false }],
-      "ctrl--": ["gram::DecreaseBufferFontSize", { "persist": false }],
-      "ctrl-0": ["gram::ResetBufferFontSize", { "persist": false }],
-      "ctrl-,": "gram::OpenSettings",
-      "ctrl-alt-,": "gram::OpenSettingsFile",
-      "ctrl-q": "gram::Quit",
+      "ctrl-=": ["lcode::IncreaseBufferFontSize", { "persist": false }],
+      "ctrl-shift-=": ["lcode::IncreaseBufferFontSize", { "persist": false }],
+      "ctrl--": ["lcode::DecreaseBufferFontSize", { "persist": false }],
+      "ctrl-0": ["lcode::ResetBufferFontSize", { "persist": false }],
+      "ctrl-,": "lcode::OpenSettings",
+      "ctrl-alt-,": "lcode::OpenSettingsFile",
+      "ctrl-q": "lcode::Quit",
       "f4": "debugger::Start",
       "shift-f5": "debugger::Stop",
       "ctrl-shift-f5": "debugger::RerunSession",
       "f6": "debugger::Pause",
       "f10": "debugger::StepOver",
       "shift-f11": "debugger::StepOut",
-      "f11": "gram::ToggleFullScreen",
+      "f11": "lcode::ToggleFullScreen",
       "shift-alt-l": "lsp_tool::ToggleMenu",
       "ctrl-shift-alt-c": "editor::DisplayCursorNames",
     },
@@ -433,7 +433,7 @@
       "ctrl-shift-f": "pane::DeploySearch",
       "ctrl-shift-h": ["pane::DeploySearch", { "replace_enabled": true }],
       "ctrl-shift-t": "pane::ReopenClosedItem",
-      "ctrl-k ctrl-s": "gram::OpenKeymap",
+      "ctrl-k ctrl-s": "lcode::OpenKeymap",
       "ctrl-k ctrl-t": "theme_selector::Toggle",
       "ctrl-alt-super-p": "settings_profile_selector::Toggle",
       "ctrl-t": "project_symbols::Toggle",
@@ -459,7 +459,7 @@
       "ctrl-k shift-right": "workspace::SwapPaneRight",
       "ctrl-k shift-up": "workspace::SwapPaneUp",
       "ctrl-k shift-down": "workspace::SwapPaneDown",
-      "ctrl-shift-x": "gram::Extensions",
+      "ctrl-shift-x": "lcode::Extensions",
       // All task parameters are captured and unchanged between reruns by default.
       // Use the `"reevaluate_context"` parameter to control this.
       "ctrl-shift-r": ["task::Rerun", { "reevaluate_context": false }],
@@ -982,10 +982,10 @@
     "context": "Onboarding",
     "use_key_equivalents": true,
     "bindings": {
-      "ctrl-=": ["gram::IncreaseUiFontSize", { "persist": false }],
-      "ctrl-+": ["gram::IncreaseUiFontSize", { "persist": false }],
-      "ctrl--": ["gram::DecreaseUiFontSize", { "persist": false }],
-      "ctrl-0": ["gram::ResetUiFontSize", { "persist": false }],
+      "ctrl-=": ["lcode::IncreaseUiFontSize", { "persist": false }],
+      "ctrl-+": ["lcode::IncreaseUiFontSize", { "persist": false }],
+      "ctrl--": ["lcode::DecreaseUiFontSize", { "persist": false }],
+      "ctrl-0": ["lcode::ResetUiFontSize", { "persist": false }],
       "ctrl-enter": "onboarding::Finish",
     },
   },
@@ -993,10 +993,10 @@
     "context": "Welcome",
     "use_key_equivalents": true,
     "bindings": {
-      "ctrl-=": ["gram::IncreaseUiFontSize", { "persist": false }],
-      "ctrl-+": ["gram::IncreaseUiFontSize", { "persist": false }],
-      "ctrl--": ["gram::DecreaseUiFontSize", { "persist": false }],
-      "ctrl-0": ["gram::ResetUiFontSize", { "persist": false }],
+      "ctrl-=": ["lcode::IncreaseUiFontSize", { "persist": false }],
+      "ctrl-+": ["lcode::IncreaseUiFontSize", { "persist": false }],
+      "ctrl--": ["lcode::DecreaseUiFontSize", { "persist": false }],
+      "ctrl-0": ["lcode::ResetUiFontSize", { "persist": false }],
       "ctrl-1": ["welcome::OpenRecentProject", 0],
       "ctrl-2": ["welcome::OpenRecentProject", 1],
       "ctrl-3": ["welcome::OpenRecentProject", 2],
@@ -1099,9 +1099,16 @@
   {
     "context": "Editor && copilot_suggestion",
     "bindings": {
+      "tab": "copilot::Accept",
       "alt-enter": "copilot::Accept",
       "alt-]": "copilot::NextSuggestion",
       "alt-[": "copilot::PreviousSuggestion"
+    }
+  },
+  {
+    "context": "notebook && !showing_completions",
+    "bindings": {
+      "shift-enter": "notebook::RunSelectedCell"
     }
   },
 ]

@@ -1,5 +1,5 @@
 use futures::{SinkExt as _, channel::mpsc};
-use gpui::{App, AppContext as _, Entity, Task, Window};
+use gpui::{App, AppContext as _, Task, Window};
 use http_client::{AsyncBody, HttpClient, Request};
 use jupyter_protocol::{ExecutionState, JupyterKernelspec, JupyterMessage, KernelInfoReply};
 
@@ -7,9 +7,7 @@ use futures::StreamExt;
 use jupyter_zmq_client::{JupyterMessageContent, KernelInfoRequest};
 use smol::io::AsyncReadExt as _;
 
-use crate::Session;
-
-use super::RunningKernel;
+use super::{KernelClient, RunningKernel};
 use anyhow::Result;
 use jupyter_websocket_client::{
     JupyterWebSocketReader, JupyterWebSocketWriter, KernelLaunchRequest, KernelSpecsResponse, RemoteServer,
@@ -124,10 +122,10 @@ pub struct RemoteRunningKernel {
 }
 
 impl RemoteRunningKernel {
-    pub fn launch(
+    pub(crate) fn launch<S: KernelClient>(
         kernelspec: RemoteKernelSpecification,
         working_directory: std::path::PathBuf,
-        session: Entity<Session>,
+        session: gpui::WeakEntity<S>,
         window: &mut Window,
         cx: &mut App,
     ) -> Task<Result<Box<dyn RunningKernel>>> {
@@ -185,7 +183,7 @@ impl RemoteRunningKernel {
                             Ok(message) => {
                                 session
                                     .update_in(cx, |session, window, cx| {
-                                        session.route(&message, window, cx);
+                                        session.on_kernel_message(&message, window, cx);
                                     })
                                     .ok();
                             }

@@ -470,7 +470,7 @@ how to keep your Python setup working smoothly.
 If a language server isn't responding or features like diagnostics or
 autocomplete aren't available:
 
-- Check your Gram log (using the {#action gram::OpenLog} action) for errors
+- Check your Gram log (using the {#action lcode::OpenLog} action) for errors
   related to the language server you're trying to use. This is where you're
   likely to find useful information if the language server failed to start up at
   all.

@@ -39,6 +39,7 @@ wasmtime::component::bindgen!({
         default: async,
     },
     path: "../extension_api/wit/since_v0.6.0",
+    world: "extension",
     with: {
          "worktree": ExtensionWorktree,
          "project": ExtensionProject,

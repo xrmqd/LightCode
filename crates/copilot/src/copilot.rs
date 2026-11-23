@@ -22,7 +22,6 @@ use std::{
     time::Duration,
 };
 
-const SERVER_VERSION: &str = "1.567.1";
 const MAX_ARCHIVE_SIZE: u64 = 150_000_000;
 pub const MAX_DOCUMENT_SIZE: usize = 1_000_000;
 pub const SNOOZE_DURATION: Duration = Duration::from_secs(10 * 60);
@@ -144,7 +143,18 @@ pub struct DocumentInput {
     pub insert_spaces: bool,
 }
 
+#[derive(serde::Deserialize)]
+pub struct ServerRelease {
+    pub version: String,
+    pub platform: String,
+    pub sha256: String,
+}
+
+pub type ReleaseProvider = fn(&mut App) -> Task<Result<ServerRelease>>;
+
 pub struct Copilot {
+    installed: bool,
+    release: ReleaseProvider,
     fs: Arc<dyn Fs>,
     http: Arc<dyn HttpClient>,
     settings: CopilotSettings,
@@ -167,11 +177,13 @@ pub struct Copilot {
     _server_handlers: Vec<lsp::Subscription>,
 }
 
-pub fn init(fs: Arc<dyn Fs>, http: Arc<dyn HttpClient>, cx: &mut App) {
+pub fn init(fs: Arc<dyn Fs>, http: Arc<dyn HttpClient>, release: ReleaseProvider, cx: &mut App) {
     CopilotSettings::register(cx);
     let service = cx.new(|cx: &mut Context<Copilot>| {
         let settings = CopilotSettings::get_global(cx).clone();
-        let mut service = Copilot {
+        Copilot {
+            installed: false,
+            release,
             fs,
             http,
             settings,
@@ -192,11 +204,7 @@ pub fn init(fs: Arc<dyn Fs>, http: Arc<dyn HttpClient>, cx: &mut App) {
             resume_task: None,
             _settings_subscription: cx.observe_global::<SettingsStore>(|this, cx| this.reload_settings(cx)),
             _server_handlers: Vec::new(),
-        };
-        if service.settings.enabled {
-            service.start(cx);
         }
-        service
     });
     cx.set_global(GlobalCopilot(service));
 }
@@ -206,8 +214,24 @@ impl Copilot {
         cx.try_global::<GlobalCopilot>().map(|global| global.0.clone())
     }
 
+    pub fn installed(&self) -> bool {
+        self.installed
+    }
+
+    pub fn set_plugin_installed(&mut self, installed: bool, cx: &mut Context<Self>) {
+        if self.installed != installed {
+            self.installed = installed;
+            if installed {
+                self.start(cx);
+            } else {
+                self.stop(cx);
+            }
+            cx.notify();
+        }
+    }
+
     pub fn status(&self) -> Status {
-        if !self.settings.enabled {
+        if !self.installed || !self.settings.enabled {
             Status::Disabled
         } else if self.paused {
             Status::Paused
@@ -257,6 +281,9 @@ impl Copilot {
     }
 
     pub fn set_enabled(&mut self, enabled: bool, cx: &mut Context<Self>) {
+        if !self.installed {
+            return;
+        }
         update_settings_file(
             self.fs.clone(),
             cx,
@@ -354,7 +381,7 @@ impl Copilot {
     }
 
     fn start(&mut self, cx: &mut Context<Self>) {
-        if !self.settings.enabled || self.server.is_some() || self.starting {
+        if !self.installed || !self.settings.enabled || self.server.is_some() || self.starting {
             return;
         }
         self.starting = true;
@@ -362,12 +389,17 @@ impl Copilot {
         let epoch = self.epoch;
         let http = self.http.clone();
         let path = self.settings.server_path.clone();
+        let release = path.is_none().then(|| (self.release)(cx));
         self.start_task = Some(cx.spawn(async move |this, cx| {
             let result = async {
                 let install_dir = paths::data_dir().join("copilot");
                 let root = install_dir.clone();
+                let release = match release {
+                    Some(release) => Some(release.await?),
+                    None => None,
+                };
                 let binary = cx
-                    .background_spawn(async move { install_binary(&install_dir, path, http).await })
+                    .background_spawn(async move { install_binary(&install_dir, path, release, http).await })
                     .await?;
                 let config = root.join("config");
                 smol::fs::create_dir_all(&config).await?;
@@ -486,6 +518,9 @@ impl Copilot {
     }
 
     pub fn sign_in(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if !self.installed {
+            return;
+        }
         if self.signing_in || self.authorized {
             return;
         }
@@ -771,7 +806,12 @@ fn show_message(
     }
 }
 
-async fn install_binary(root: &Path, configured: Option<PathBuf>, http: Arc<dyn HttpClient>) -> Result<PathBuf> {
+async fn install_binary(
+    root: &Path,
+    configured: Option<PathBuf>,
+    release: Option<ServerRelease>,
+    http: Arc<dyn HttpClient>,
+) -> Result<PathBuf> {
     smol::fs::create_dir_all(root).await?;
     if let Some(path) = configured {
         ensure!(
@@ -780,26 +820,26 @@ async fn install_binary(root: &Path, configured: Option<PathBuf>, http: Arc<dyn 
         );
         return Ok(path);
     }
-    let (platform, checksum) = match (std::env::consts::OS, std::env::consts::ARCH) {
-        ("macos", "aarch64") => (
-            "darwin-arm64",
-            "a0b6377a22ebf2dca9e80adbb26c7dd61f5b867233050635e0b1ac0868a6bd75",
-        ),
-        ("macos", "x86_64") => (
-            "darwin-x64",
-            "935358bdd66ab8b470808debac1c4222e2a1ea733215c599008378e9a9e754dc",
-        ),
-        _ => anyhow::bail!(
-            "Automatic Copilot server installation is available on macOS. Set copilot.server_path to use an installed server."
-        ),
-    };
-    let target = root.join(format!("{SERVER_VERSION}-{platform}"));
+    let ServerRelease {
+        version,
+        platform,
+        sha256,
+    } = release.context("Missing Copilot server release")?;
+    ensure!(
+        !version.is_empty()
+            && version.bytes().all(|byte| byte.is_ascii_digit() || byte == b'.')
+            && matches!(platform.as_str(), "darwin-arm64" | "darwin-x64")
+            && sha256.len() == 64
+            && sha256.bytes().all(|byte| byte.is_ascii_hexdigit()),
+        "Invalid Copilot server release in extension"
+    );
+    let target = root.join(format!("{version}-{platform}"));
     let executable = target.join("copilot-language-server");
     if smol::fs::metadata(&executable).await.is_ok_and(|m| m.is_file()) {
         return Ok(executable);
     }
     let url = format!(
-        "https://github.com/github/copilot-language-server-release/releases/download/{SERVER_VERSION}/copilot-language-server-{platform}-{SERVER_VERSION}.zip"
+        "https://github.com/github/copilot-language-server-release/releases/download/{version}/copilot-language-server-{platform}-{version}.zip"
     );
     let mut response = http
         .get(&url, Default::default(), true)
@@ -821,10 +861,10 @@ async fn install_binary(root: &Path, configured: Option<PathBuf>, http: Arc<dyn 
         "Copilot server download exceeded the size limit"
     );
     ensure!(
-        format!("{:x}", Sha256::digest(&bytes)) == checksum,
+        format!("{:x}", Sha256::digest(&bytes)) == sha256,
         "Copilot server archive failed its SHA-256 check"
     );
-    let staging = root.join(format!(".{SERVER_VERSION}-{platform}.installing"));
+    let staging = root.join(format!(".{version}-{platform}.installing"));
     if staging.exists() {
         smol::fs::remove_dir_all(&staging).await?;
     }

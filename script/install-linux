@@ -4,7 +4,7 @@ set -euxo pipefail
 if [[ $# -gt 0 ]]; then
     echo "
   Usage: ${0##*/}
-  Builds and installs gram onto your system into ~/.local, making it available as ~/.local/bin/gram.
+  Builds and installs LightCode onto your system into ~/.local, making it available as ~/.local/bin/lcode.
 
   Before running this you should ensure you have all the build dependencies installed with './script/linux'.
   "

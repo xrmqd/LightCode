@@ -92,7 +92,7 @@ impl Editor {
         ));
     }
 
-    pub fn copilot_language(&self, cx: &App) -> Option<String> {
+    pub fn active_language_lsp_id(&self, cx: &App) -> Option<String> {
         let buffer = self.buffer.read(cx).as_singleton()?;
         let language = buffer.read(cx).language()?;
         Some(language.lsp_id())
@@ -280,6 +280,7 @@ impl Editor {
         {
             return false;
         }
+        self.hide_context_menu(window, cx);
         let (item, text) = &suggestion.items[suggestion.selected];
         let cursor = suggestion.target.cursor;
         let after = MultiBufferOffset(cursor.0 + text.len());
@@ -300,7 +301,9 @@ impl Editor {
     }
 
     pub(super) fn accept_copilot_action(&mut self, _: &copilot::Accept, window: &mut Window, cx: &mut Context<Self>) {
-        if !self.accept_copilot(window, cx) {
+        if self.accept_copilot(window, cx) {
+            cx.stop_propagation();
+        } else {
             cx.propagate();
         }
     }

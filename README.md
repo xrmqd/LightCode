@@ -7,8 +7,10 @@ LightCode — независимый форк редактора [Gram](https://
 Редактор сохраняет основные возможности исходного проекта: LSP, встроенный Git,
 отладчик DAP, REPL/Jupyter, Vim/Helix-режимы и расширения.
 
-В ветке Copilot доступно [автодополнение GitHub Copilot](docs/github-copilot.md):
-вход через GitHub, подсказки в тексте и управление из строки состояния.
+[GitHub Copilot](docs/github-copilot.md) устанавливается через Extensions.
+LightCode открывает, редактирует и сохраняет Jupyter Notebook (`.ipynb`).
+Поддержку команд палитры и кнопок редактора см. в
+[руководстве по расширениям](docs/extensions/developing-extensions.md).
 
 ## Сборки macOS
 
@@ -27,7 +29,7 @@ macOS remote-server и контрольными суммами. Возможен
 
 - Имя приложения: `LightCode` (`LightCode Dev` для dev-канала).
 - Идентификатор macOS: `dev.lightcode.editor` (dev: `dev.lightcode.editor-dev`).
-- Команда после установки CLI через меню: `lightcode`.
+- Команда после установки CLI через меню: `lcode`.
 - Ссылки внутри редактора: `lightcode://…`.
 - Настройки: `~/.config/lightcode`; данные macOS:
   `~/Library/Application Support/LightCode`; журналы: `~/Library/Logs/LightCode`.

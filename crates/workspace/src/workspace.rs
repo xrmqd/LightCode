@@ -5691,7 +5691,7 @@ pub fn last_session_workspace_locations(
 }
 
 actions!(
-    gram,
+    lcode,
     [
         /// Opens the Gram log file.
         OpenLog,

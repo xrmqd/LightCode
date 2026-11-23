@@ -26,6 +26,20 @@ use ui::{HighlightedLabel, KeyBinding, ListItem, ListItemSpacing, prelude::*};
 use util::ResultExt;
 use workspace::{ModalView, Workspace, WorkspaceSettings};
 
+type CommandProvider = fn(&Workspace, &App) -> Vec<(String, Box<dyn Action>)>;
+
+struct ExternalCommandProvider(CommandProvider);
+
+impl gpui::Global for ExternalCommandProvider {}
+
+pub fn set_external_command_provider(provider: CommandProvider, cx: &mut App) {
+    cx.set_global(ExternalCommandProvider(provider));
+}
+
+pub fn hide_namespace(namespace: &'static str, cx: &mut App) {
+    CommandPaletteFilter::update_global(cx, |filter| filter.hide_namespace(namespace));
+}
+
 pub fn init(cx: &mut App) {
     command_palette_hooks::init(cx);
     cx.observe_new(CommandPalette::register).detach();
@@ -71,8 +85,12 @@ impl CommandPalette {
         };
 
         let entity = cx.weak_entity();
+        let extension_commands = cx
+            .try_global::<ExternalCommandProvider>()
+            .map(|provider| (provider.0)(workspace, cx))
+            .unwrap_or_default();
         workspace.toggle_modal(window, cx, move |window, cx| {
-            CommandPalette::new(previous_focus_handle, query, entity, window, cx)
+            CommandPalette::new(previous_focus_handle, query, entity, extension_commands, window, cx)
         });
     }
 
@@ -80,6 +98,7 @@ impl CommandPalette {
         previous_focus_handle: FocusHandle,
         query: &str,
         entity: WeakEntity<Workspace>,
+        extension_commands: Vec<(String, Box<dyn Action>)>,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Self {
@@ -98,8 +117,12 @@ impl CommandPalette {
                     action,
                 })
             })
+            .chain(
+                extension_commands
+                    .into_iter()
+                    .map(|(name, action)| Command { name, action }),
+            )
             .collect();
-
         let delegate = CommandPaletteDelegate::new(cx.entity().downgrade(), entity, commands, previous_focus_handle);
 
         let picker = cx.new(|cx| {

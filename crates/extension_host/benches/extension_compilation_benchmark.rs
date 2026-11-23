@@ -132,6 +132,8 @@ fn manifest() -> ExtensionManifest {
         })],
         debug_adapters: Default::default(),
         debug_locators: Default::default(),
+        commands: Default::default(),
+        inline_completion_provider: None,
     }
 }
 

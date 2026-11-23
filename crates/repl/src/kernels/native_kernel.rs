@@ -5,7 +5,7 @@ use futures::{
     io::BufReader,
     stream::{FuturesUnordered, SelectAll, StreamExt},
 };
-use gpui::{App, AppContext as _, Entity, EntityId, Task, Window};
+use gpui::{App, AppContext as _, EntityId, Task, Window};
 use jupyter_protocol::{
     ExecutionState, JupyterKernelspec, JupyterMessage, JupyterMessageContent, KernelInfoReply,
     connection_info::{ConnectionInfo, Transport},
@@ -22,9 +22,7 @@ use std::{
 };
 use uuid::Uuid;
 
-use crate::Session;
-
-use super::RunningKernel;
+use super::{KernelClient, RunningKernel};
 
 #[derive(Debug, Clone)]
 pub struct LocalKernelSpecification {
@@ -89,6 +87,7 @@ pub struct NativeRunningKernel {
     pub process: smol::process::Child,
     connection_path: PathBuf,
     _process_status_task: Option<Task<()>>,
+    _message_tasks: [Task<()>; 2],
     pub working_directory: PathBuf,
     pub request_tx: mpsc::Sender<JupyterMessage>,
     pub execution_state: ExecutionState,
@@ -102,13 +101,12 @@ impl Debug for NativeRunningKernel {
 }
 
 impl NativeRunningKernel {
-    pub fn launch(
+    pub(crate) fn launch<S: KernelClient>(
         kernel_specification: LocalKernelSpecification,
         entity_id: EntityId,
         working_directory: PathBuf,
         fs: Arc<dyn Fs>,
-        // todo: convert to weak view
-        session: Entity<Session>,
+        session: gpui::WeakEntity<S>,
         window: &mut Window,
         cx: &mut App,
     ) -> Task<Result<Box<dyn RunningKernel>>> {
@@ -126,14 +124,14 @@ impl NativeRunningKernel {
                 iopub_port: ports[4],
                 signature_scheme: "hmac-sha256".to_string(),
                 key: uuid::Uuid::new_v4().to_string(),
-                kernel_name: Some(format!("gram-{}", kernel_specification.name)),
+                kernel_name: Some(format!("lcode-{}", kernel_specification.name)),
             };
 
             let runtime_dir = dirs::runtime_dir();
             fs.create_dir(&runtime_dir)
                 .await
                 .with_context(|| format!("Failed to create jupyter runtime dir {runtime_dir:?}"))?;
-            let connection_path = runtime_dir.join(format!("kernel-gram-{entity_id}.json"));
+            let connection_path = runtime_dir.join(format!("kernel-lcode-{entity_id}-{}.json", Uuid::new_v4()));
             let content = serde_json::to_string(&connection_info)?;
             fs.atomic_write(connection_path.clone(), content).await?;
 
@@ -182,20 +180,19 @@ impl NativeRunningKernel {
             messages_rx.push(control_reply_rx);
             messages_rx.push(shell_reply_rx);
 
-            cx.spawn({
+            let replies_task = cx.spawn({
                 let session = session.clone();
 
                 async move |cx| {
                     while let Some(message) = messages_rx.next().await {
                         session
                             .update_in(cx, |session, window, cx| {
-                                session.route(&message, window, cx);
+                                session.on_kernel_message(&message, window, cx);
                             })
                             .ok();
                     }
                 }
-            })
-            .detach();
+            });
 
             // iopub task
             let iopub_task = cx.spawn({
@@ -206,7 +203,7 @@ impl NativeRunningKernel {
                         let message = iopub_socket.read().await?;
                         session
                             .update_in(cx, |session, window, cx| {
-                                session.route(&message, window, cx);
+                                session.on_kernel_message(&message, window, cx);
                             })
                             .ok();
                     }
@@ -284,7 +281,7 @@ impl NativeRunningKernel {
             })
             .detach();
 
-            cx.spawn({
+            let transport_task = cx.spawn({
                 let session = session.clone();
                 async move |cx| {
                     async fn with_name(name: &'static str, task: Task<Result<()>>) -> (&'static str, Result<()>) {
@@ -303,15 +300,14 @@ impl NativeRunningKernel {
 
                             session
                                 .update(cx, |session, cx| {
-                                    session.kernel_errored(format!("handling failed for {name}: {err}"), cx);
+                                    session.on_kernel_error(format!("handling failed for {name}: {err}"), cx);
                                     cx.notify();
                                 })
                                 .ok();
                         }
                     }
                 }
-            })
-            .detach();
+            });
 
             let status = process.status();
 
@@ -334,7 +330,7 @@ impl NativeRunningKernel {
 
                 session
                     .update(cx, |session, cx| {
-                        session.kernel_errored(error_message, cx);
+                        session.on_kernel_error(error_message, cx);
 
                         cx.notify();
                     })
@@ -346,6 +342,7 @@ impl NativeRunningKernel {
                 request_tx,
                 working_directory,
                 _process_status_task: Some(process_status_task),
+                _message_tasks: [replies_task, transport_task],
                 connection_path,
                 execution_state: ExecutionState::Idle,
                 kernel_info: None,

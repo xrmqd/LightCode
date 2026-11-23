@@ -89,6 +89,22 @@ jobs:
           APPLE_SIGNING_KEY: "-"
         run: ./script/bundle-mac "$TARGET"
 
+      - name: Build the GitHub Copilot extension
+        run: |
+          set -euo pipefail
+          extension_target="$RUNNER_TEMP/lightcode-extension-target"
+          cargo build --locked --release --target wasm32-wasip2 \
+            --target-dir "$extension_target" --manifest-path extensions/github-copilot/Cargo.toml
+          plugin_stage="$(mktemp -d "$RUNNER_TEMP/lightcode-copilot.XXXXXX")"
+          mkdir -p "$plugin_stage/github-copilot" dist
+          cp extensions/github-copilot/extension.toml LICENSE "$plugin_stage/github-copilot/"
+          cp "$extension_target/wasm32-wasip2/release/lightcode_github_copilot.wasm" \
+            "$plugin_stage/github-copilot/extension.wasm"
+          test -s "$plugin_stage/github-copilot/extension.wasm"
+          archive="$PWD/dist/GitHub-Copilot-for-LightCode.zip"
+          (cd "$plugin_stage" && zip -q -X -r "$archive" github-copilot)
+          unzip -t "$archive"
+
       - name: Collect packages
         run: |
           set -euo pipefail
@@ -137,10 +153,13 @@ jobs:
           test -s "dist/$INSTALLER_NAME"
           test -s dist/lightcode-remote-server-macos-aarch64.gz
           mkdir -p release-assets
-          cp "dist/$INSTALLER_NAME" dist/lightcode-remote-server-macos-aarch64.gz release-assets/
+          test -s dist/GitHub-Copilot-for-LightCode.zip
+          cp "dist/$INSTALLER_NAME" dist/lightcode-remote-server-macos-aarch64.gz \
+            dist/GitHub-Copilot-for-LightCode.zip release-assets/
           git archive --format=tar.gz --prefix=lightcode-source/ HEAD > release-assets/LightCode-source.tar.gz
           cd release-assets
-          sha256sum -- "$INSTALLER_NAME" lightcode-remote-server-macos-aarch64.gz LightCode-source.tar.gz > SHA256SUMS.txt
+          sha256sum -- "$INSTALLER_NAME" lightcode-remote-server-macos-aarch64.gz \
+            GitHub-Copilot-for-LightCode.zip LightCode-source.tar.gz > SHA256SUMS.txt
 
       - name: Create release or update its assets
         env:
@@ -156,6 +175,7 @@ jobs:
 
           - \`$INSTALLER_NAME\`: the application.
           - \`lightcode-remote-server-macos-aarch64.gz\`: matching macOS SSH remote server.
+          - \`GitHub-Copilot-for-LightCode.zip\`: unzip and select the extension folder in Extensions → Install Local.
           - \`LightCode-source.tar.gz\`: source for commit \`$RELEASE_COMMIT\`, including build scripts.
           - \`SHA256SUMS.txt\`: SHA-256 checksums.
 

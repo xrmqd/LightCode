@@ -4,7 +4,7 @@
 // documentation: lightcode://docs/configuring-gram
 //
 // To see all of LightCode's default settings without changing your
-// custom settings, run `gram: open default settings` from the
+// custom settings, run `lcode: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
   "ui_font_size": 14,

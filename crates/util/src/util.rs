@@ -358,7 +358,7 @@ pub fn get_gram_cli_path() -> Result<PathBuf> {
         &["bin/gram.exe", "./cli.exe"]
     } else if cfg!(target_os = "linux") || cfg!(target_os = "freebsd") {
         // bin is the standard, ./cli is for the target directory in development builds.
-        &["../bin/gram", "./cli"]
+        &["../bin/lcode", "../bin/gram", "./cli"]
     } else {
         anyhow::bail!("unsupported platform for determining gram-cli path");
     };

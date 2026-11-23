@@ -190,7 +190,7 @@ if ldd "${target_dir}/${remote_server_triple}/release/remote_server" | grep -q '
 fi
 
 export DO_STARTUP_NOTIFY="true"
-export APP_CLI="gram"
+export APP_CLI="lcode"
 export APP_ID="app.liten.Gram"
 export APP_ARGS="%U"
 if [[ "$channel" == "dev" ]]; then
@@ -230,7 +230,7 @@ if [ "$DO_TARBALL" = "true" ]; then
 
     mkdir -p "${gram_dir}/bin" "${gram_dir}/libexec"
     cp "${target_dir}/${target_triple}/release/gram" "${gram_dir}/libexec/gram-editor"
-    cp "${target_dir}/${target_triple}/release/cli" "${gram_dir}/bin/gram"
+    cp "${target_dir}/${target_triple}/release/cli" "${gram_dir}/bin/lcode"
 
     mkdir -p "${gram_dir}/lib"
     ldd "${target_dir}/${target_triple}/release/gram" \

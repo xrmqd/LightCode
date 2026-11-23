@@ -22,7 +22,7 @@ Or manually download and install [OpenJDK 23](https://jdk.java.net/23/).
 
 ## Extension Install
 
-You can install by opening {#action gram::Extensions}({#kb gram::Extensions})
+You can install by opening {#action lcode::Extensions}({#kb lcode::Extensions})
 and searching for `java`.
 
 ## Quick start and configuration

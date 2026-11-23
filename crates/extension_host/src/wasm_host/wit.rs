@@ -108,9 +108,15 @@ impl Extension {
         let _ = release_channel;
 
         if version >= latest::MIN_VERSION {
-            let extension = latest::Extension::instantiate_async(store, component, latest::linker(executor))
+            let instance = latest::linker(executor)
+                .instantiate_async(&mut *store, component)
                 .await
                 .context("failed to instantiate wasm extension")?;
+            let extension = latest::Extension::new(&mut *store, &instance)?;
+            if instance.get_func(&mut *store, "run-command").is_some() {
+                let run_command = instance.get_typed_func(&mut *store, "run-command")?;
+                store.data_mut().run_command = Some(run_command);
+            }
             Ok(Self::V0_6_0(extension))
         } else if version >= since_v0_5_0::MIN_VERSION {
             let extension =

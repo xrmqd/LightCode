@@ -9,7 +9,7 @@ use util::ResultExt;
 use workspace::{ModalView, Workspace, ui::HighlightedLabel};
 
 actions!(
-    gram,
+    lcode,
     [
         /// Toggles the base keymap selector modal.
         ToggleBaseKeymapSelector

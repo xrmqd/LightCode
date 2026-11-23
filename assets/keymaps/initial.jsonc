@@ -3,7 +3,7 @@
 // For information on binding keys, see the Gram
 // documentation: lightcode://docs/key-bindings
 //
-// To see the default key bindings run `gram: open default keymap`
+// To see the default key bindings run `lcode: open default keymap`
 // from the command palette.
 [
   {

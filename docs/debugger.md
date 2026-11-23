@@ -83,7 +83,7 @@ them in the new process modal if no configurations are found in
 #### Global debug configurations
 
 If you run the same launch profiles across multiple projects, you can store them
-once in your user configuration. Invoke {#action gram::OpenDebugTasks} from the
+once in your user configuration. Invoke {#action lcode::OpenDebugTasks} from the
 command palette to open the global `debug.jsonc` file; Gram creates it next to
 your user `settings.jsonc` and keeps it in sync with the debugger UI. The file
 lives at:

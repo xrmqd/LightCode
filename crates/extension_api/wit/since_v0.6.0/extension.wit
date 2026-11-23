@@ -139,3 +139,10 @@ world extension {
     export dap-locator-create-scenario: func(locator-name: string, build-config-template: build-task-template, resolved-label: string, debug-adapter-name: string) -> option<debug-scenario>;
     export run-dap-locator: func(locator-name: string, config: resolved-task) -> result<debug-request, string>;
 }
+
+world lightcode-extension {
+    include extension;
+
+    /// Run a declared command with the optional path of the active local file.
+    export run-command: func(id: string, path: option<string>) -> result<option<string>, string>;
+}

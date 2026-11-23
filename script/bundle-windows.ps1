@@ -113,7 +113,7 @@ function ZipGramAndItsFriendsDebug {
 }
 
 function CollectFiles {
-    Move-Item -Path "$innoDir\cli.exe" -Destination "$innoDir\bin\gram.exe" -Force
+    Move-Item -Path "$innoDir\cli.exe" -Destination "$innoDir\bin\lcode.exe" -Force
     Move-Item -Path "$innoDir\gram.sh" -Destination "$innoDir\bin\gram" -Force
 }
 

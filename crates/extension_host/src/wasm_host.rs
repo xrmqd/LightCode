@@ -44,7 +44,7 @@ use task::{DebugScenario, GramDebugConfig, SpawnInTerminal, TaskTemplate};
 use util::paths::SanitizedPath;
 use wasmtime::{
     CacheStore, Engine, Store,
-    component::{Component, ResourceTable},
+    component::{Component, ResourceTable, TypedFunc},
 };
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder, WasiCtxView, WasiView};
 use wit::Extension;
@@ -71,6 +71,7 @@ pub struct WasmExtension {
     pub work_dir: Arc<Path>,
     #[allow(unused)]
     pub gram_api_version: SemanticVersion,
+    pub has_run_command: bool,
     _task: Arc<Task<Result<(), gpui_tokio::JoinError>>>,
 }
 
@@ -339,7 +340,10 @@ impl extension::Extension for WasmExtension {
     }
 }
 
+type RunCommand = TypedFunc<(String, Option<String>), (Result<Option<String>, String>,)>;
+
 pub struct WasmState {
+    run_command: Option<RunCommand>,
     manifest: Arc<ExtensionManifest>,
     pub table: ResourceTable,
     ctx: WasiCtx,
@@ -472,6 +476,7 @@ impl WasmHost {
                 &this.engine,
                 WasmState {
                     ctx: wasi_ctx,
+                    run_command: None,
                     manifest: manifest.clone(),
                     table: ResourceTable::new(),
                     host: this.clone(),
@@ -496,6 +501,7 @@ impl WasmHost {
                 .await
                 .context("failed to initialize wasm extension")?;
 
+            let has_run_command = store.data().run_command.is_some();
             let (tx, mut rx) = mpsc::unbounded::<ExtensionCall>();
             let extension_task = async move {
                 // note: Setting the thread local here will slowly "poison" all tokio threads
@@ -514,6 +520,7 @@ impl WasmHost {
                 this.work_dir.join(manifest.id.as_ref()).into(),
                 tx,
                 gram_api_version,
+                has_run_command,
             ))
         };
 
@@ -522,7 +529,7 @@ impl WasmHost {
 
             // Run wasi-dependent operations on tokio.
             // wasmtime_wasi internally uses tokio for I/O operations.
-            let (extension_task, manifest, work_dir, tx, gram_api_version) =
+            let (extension_task, manifest, work_dir, tx, gram_api_version, has_run_command) =
                 gpui_tokio::Tokio::spawn(cx, load_extension(gram_api_version, component))?.await??;
 
             // Run the extension message loop on tokio since extension
@@ -534,6 +541,7 @@ impl WasmHost {
                 work_dir,
                 tx,
                 gram_api_version,
+                has_run_command,
                 _task: task,
             })
         })
@@ -633,14 +641,36 @@ impl WasmExtension {
             .with_context(|| format!("loading wasm extension: {}", manifest.id))
     }
 
-    pub async fn call<T, Fn>(&self, f: Fn) -> Result<T>
+    pub fn run_command(
+        &self,
+        command: String,
+        path: Option<String>,
+    ) -> impl Future<Output = Result<Option<String>>> + use<> {
+        let result = self.call(move |_, store| {
+            async move {
+                let function = store
+                    .data()
+                    .run_command
+                    .context("Extension does not export run-command")?;
+                let (output,) = function.call_async(&mut *store, (command, path)).await?;
+                function.post_return_async(&mut *store).await?;
+                output.map_err(|error| store.data().extension_error(error))
+            }
+            .boxed()
+        });
+        async move { result.await? }
+    }
+
+    pub fn call<T, Fn>(&self, f: Fn) -> impl Future<Output = Result<T>> + use<T, Fn>
     where
         T: 'static + Send,
         Fn: 'static + Send + for<'a> FnOnce(&'a mut Extension, &'a mut Store<WasmState>) -> BoxFuture<'a, T>,
     {
-        let (return_tx, return_rx) = oneshot::channel();
-        self.tx
-            .unbounded_send(Box::new(move |extension, store| {
+        let tx = self.tx.clone();
+        let manifest = self.manifest.clone();
+        async move {
+            let (return_tx, return_rx) = oneshot::channel();
+            tx.unbounded_send(Box::new(move |extension, store| {
                 async {
                     let result = f(extension, store).await;
                     return_tx.send(result).ok();
@@ -650,16 +680,17 @@ impl WasmExtension {
             .map_err(|_| {
                 anyhow!(
                     "wasm extension channel should not be closed yet, extension {} (id {})",
-                    self.manifest.name,
-                    self.manifest.id,
+                    manifest.name,
+                    manifest.id,
                 )
             })?;
-        return_rx.await.with_context(|| {
-            format!(
-                "wasm extension channel, extension {} (id {})",
-                self.manifest.name, self.manifest.id,
-            )
-        })
+            return_rx.await.with_context(|| {
+                format!(
+                    "wasm extension channel, extension {} (id {})",
+                    manifest.name, manifest.id,
+                )
+            })
+        }
     }
 }
 

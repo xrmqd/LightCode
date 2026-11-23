@@ -362,6 +362,10 @@ impl ActionRegistry {
         let build_action = self
             .by_name
             .get(name)
+            .or_else(|| {
+                let suffix = name.strip_prefix("gram::")?;
+                self.by_name.get(format!("lcode::{suffix}").as_str())
+            })
             .ok_or_else(|| ActionBuildError::NotFound { name: name.to_owned() })?
             .build;
         (build_action)(params.unwrap_or_else(|| json!({}))).map_err(|e| ActionBuildError::BuildError {
@@ -419,7 +423,7 @@ mod no_action {
     use std::any::Any as _;
 
     actions!(
-        gram,
+        lcode,
         [
             /// Action with special handling which unbinds the keybinding this is associated with,
             /// if it is the highest precedence match.

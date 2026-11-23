@@ -20,11 +20,11 @@ to run `rustup-init` for the command to work properly.
 When developing an extension, you can use it in Gram by installing it:
 
 From the extensions page, click the `Install Local` button (or the {#action
-gram::InstallExtensionFromFolder} action) and select the directory containing
+lcode::InstallExtensionFromFolder} action) and select the directory containing
 your extension.
 
 If you need to troubleshoot, you can check the Gram.log ({#action
-gram::OpenLog}) for additional output. For debug output, close and relaunch the
+lcode::OpenLog}) for additional output. For debug output, close and relaunch the
 editor with the flag `gram --foreground` from the command line which show more
 verbose INFO level logging.
 
@@ -96,7 +96,7 @@ struct MyExtension {
     // ... state
 }
 
-impl gram::Extension for MyExtension {
+impl lcode::Extension for MyExtension {
     // ...
 }
 
@@ -106,6 +106,38 @@ gram::register_extension!(MyExtension);
 > `stdout`/`stderr` is forwarded directly to the Gram process. In order to see
 > `println!`/`dbg!` output from your extension, you can start Gram in your
 > terminal with a `--foreground` flag.
+
+## LightCode commands and editor buttons
+
+Declare a command in `extension.toml`. The editor adds it to the command
+palette when the Wasm extension loads. Set `editor_toolbar` to put the same
+command in the editor's quick actions and use `language` to limit where it
+appears.
+
+```toml
+[commands.show-active-python-file]
+title = "Show Active Python File"
+editor_toolbar = true
+language = "python"
+```
+
+Implement `run_command` in the extension using the SDK from the LightCode
+repository. The handler receives the ID from the manifest and, when available,
+the path of the active local, non-private file. Return `Ok(Some(message))` to
+show a notification, `Ok(None)` to finish silently, or `Err(message)` to report
+an error.
+
+```rust
+fn run_command(&mut self, id: &str, active_file: Option<&str>) -> zed_extension_api::Result<Option<String>> {
+    match id {
+        "show-active-python-file" => Ok(active_file.map(str::to_owned)),
+        _ => Err(format!("Unknown command {id}")),
+    }
+}
+```
+
+Commands and buttons appear after installation. Removing or rebuilding the
+extension updates the available commands without restarting LightCode.
 
 ## Extension License
 

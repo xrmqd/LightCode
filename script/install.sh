@@ -112,7 +112,7 @@ mkdir -p "$GRAM_INSTALL_PREFIX/gram$suffix.app"
 mkdir -p "$GRAM_INSTALL_PREFIX/bin" "$GRAM_INSTALL_PREFIX/share/applications" "$GRAM_INSTALL_PREFIX/share/icons"
 tar -xzf "$GRAM_BUNDLE_FILE" -C "$GRAM_INSTALL_PREFIX/"
 
-ln -sf "$GRAM_INSTALL_PREFIX/gram$suffix.app/bin/gram" "$GRAM_INSTALL_PREFIX/bin/gram"
+ln -sf "$GRAM_INSTALL_PREFIX/gram$suffix.app/bin/lcode" "$GRAM_INSTALL_PREFIX/bin/lcode"
 
 desktop_file_path="$GRAM_INSTALL_PREFIX/share/applications/${appid}.desktop"
 src_dir="$GRAM_INSTALL_PREFIX/gram$suffix.app/share/applications"
@@ -127,14 +127,14 @@ install -Dm644 "$bundle_icons/symbolic/apps/$appid-symbolic.svg" "$icon_theme_di
 # Notify cached icon lookups that the theme contents changed.
 touch "$icon_theme_dir"
 
-gram_executable="$GRAM_INSTALL_PREFIX/gram$suffix.app/bin/gram"
+gram_executable="$GRAM_INSTALL_PREFIX/gram$suffix.app/bin/lcode"
 # Quote the executable for desktop Exec keys, then escape sed replacements.
 exec_value=$(printf '%s' "$gram_executable" | sed -e 's/\\/\\\\\\\\/g' -e 's/["`$]/\\\\&/g')
 exec_value="\"$exec_value\""
 exec_value=$(printf '%s' "$exec_value" | sed 's/[\\&|]/\\&/g')
 tryexec_value=$(printf '%s' "$gram_executable" | sed -e 's/\\/\\\\/g' -e 's/[\\&|]/\\&/g')
-sed -i -e "s|^Exec=gram |Exec=$exec_value |" \
-       -e "s|^TryExec=gram$|TryExec=$tryexec_value|" "$desktop_file_path"
+sed -i -e "s|^Exec=lcode |Exec=$exec_value |" \
+       -e "s|^TryExec=lcode$|TryExec=$tryexec_value|" "$desktop_file_path"
 
 if command -v update-desktop-database >/dev/null 2>&1; then
   update-desktop-database "$GRAM_INSTALL_PREFIX/share/applications" ||\

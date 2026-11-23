@@ -512,6 +512,7 @@ pub fn main() {
             cx.background_executor().clone(),
         );
         command_palette::init(cx);
+        gram::extension_commands::init(cx);
         snippet_provider::init(cx);
         repl::init(app_state.fs.clone(), cx);
         recent_projects::init(cx);
@@ -520,7 +521,13 @@ pub fn main() {
         load_embedded_fonts(cx);
 
         editor::init(cx);
-        copilot::init(app_state.fs.clone(), app_state.client.http_client(), cx);
+        copilot::init(
+            app_state.fs.clone(),
+            app_state.client.http_client(),
+            gram::extension_commands::copilot_release,
+            cx,
+        );
+        gram::extension_commands::observe_copilot(cx);
         image_viewer::init(cx);
         repl::notebook::init(cx);
         diagnostics::init(cx);
@@ -1117,7 +1124,7 @@ struct Args {
     /// Prints system specs.
     ///
     /// Useful for submitting issues on Codeberg when encountering a bug that
-    /// prevents Gram from starting, so you can't run `gram: copy system specs to
+    /// prevents Gram from starting, so you can't run `lcode: copy system specs to
     /// clipboard`
     #[arg(long)]
     system_specs: bool,

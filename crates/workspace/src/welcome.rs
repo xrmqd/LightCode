@@ -25,7 +25,7 @@ pub struct OpenRecentProject {
 }
 
 actions!(
-    gram,
+    lcode,
     [
         /// Show the Gram welcome screen
         ShowWelcome

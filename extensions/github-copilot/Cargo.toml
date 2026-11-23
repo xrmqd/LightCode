@@ -1,0 +1,13 @@
+[package]
+name = "lightcode-github-copilot"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+zed_extension_api = { path = "../../crates/extension_api" }
+
+[workspace]

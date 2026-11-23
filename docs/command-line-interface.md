@@ -1,18 +1,18 @@
 # LightCode Command-line Interface
 
-On macOS, use **LightCode → Install CLI** to create a `lightcode` symlink at
-`/usr/local/bin/lightcode` pointing to the CLI inside the installed application.
+On macOS, use **LightCode → Install lcode Command** to create a `lcode` symlink at
+`/usr/local/bin/lcode` pointing to the CLI inside the installed application.
 
-Use `lightcode --help` for all available options. Examples:
+Use `lcode --help` for all available options. Examples:
 
-- Open a new window: `lightcode`.
-- Open a project: `lightcode /path/to/project`.
-- Open a file in a new window: `lightcode -n /path/to/file`.
-- Read standard input: `ps axf | lightcode -`.
-- Show logs in the terminal: `lightcode --foreground`.
-- Show the installed version and application path: `lightcode --version`.
-- Select an application explicitly: `lightcode --lightcode /Applications/LightCode.app`.
+- Open a new window: `lcode`.
+- Open a project: `lcode /path/to/project`.
+- Open a file in a new window: `lcode -n /path/to/file`.
+- Read standard input: `ps axf | lcode -`.
+- Show logs in the terminal: `lcode --foreground`.
+- Show the installed version and application path: `lcode --version`.
+- Select an application explicitly: `lcode --lcode /Applications/LightCode.app`.
 
-The `--gram` option is retained as a compatibility alias for `--lightcode`.
+The `--gram` and `--lightcode` options are retained as compatibility aliases for `--lcode`.
 Internal Rust packages and the executable inside the application bundle retain
-upstream names; the installed command is `lightcode`.
+upstream names; the installed command is `lcode`.

@@ -1,7 +1,7 @@
 [
   {
     "bindings": {
-      "ctrl-alt-s": "gram::OpenSettings",
+      "ctrl-alt-s": "lcode::OpenSettings",
       "ctrl-{": "pane::ActivatePreviousItem",
       "ctrl-}": "pane::ActivateNextItem",
       "shift-escape": null, // Unmap workspace::zoom
@@ -19,8 +19,8 @@
   {
     "context": "Editor",
     "bindings": {
-      "ctrl->": ["gram::IncreaseBufferFontSize", { "persist": true }],
-      "ctrl-<": ["gram::DecreaseBufferFontSize", { "persist": true }],
+      "ctrl->": ["lcode::IncreaseBufferFontSize", { "persist": true }],
+      "ctrl-<": ["lcode::DecreaseBufferFontSize", { "persist": true }],
       "ctrl-shift-j": "editor::JoinLines",
       "ctrl-d": "editor::DuplicateSelection",
       "ctrl-y": "editor::DeleteLine",

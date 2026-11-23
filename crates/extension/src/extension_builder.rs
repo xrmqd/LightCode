@@ -92,9 +92,16 @@ impl ExtensionBuilder {
 
         if extension_manifest.lib.kind == Some(ExtensionLibraryKind::Rust) {
             log::info!("compiling Rust extension {}", extension_dir.display());
-            self.compile_rust_extension(extension_dir, extension_manifest, options)
-                .await
-                .context("failed to compile Rust extension")?;
+            if fs.is_file(&extension_dir.join("Cargo.toml")).await {
+                self.compile_rust_extension(extension_dir, extension_manifest, options)
+                    .await
+                    .context("failed to compile Rust extension")?;
+            } else {
+                let path = extension_dir.join("extension.wasm");
+                let component = std::fs::read(&path).with_context(|| format!("reading {path:?}"))?;
+                extension_manifest.lib.version =
+                    Some(parse_wasm_extension_version(&extension_manifest.id, &component)?);
+            }
             log::info!("compiled Rust extension {}", extension_dir.display());
         }
 

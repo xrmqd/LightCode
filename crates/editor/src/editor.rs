@@ -2400,7 +2400,9 @@ impl Editor {
             && copilot::Copilot::global(cx).is_some_and(|service| {
                 let service = service.read(cx);
                 service.ready_for_completions()
-                    && self.copilot_language(cx).is_some_and(|language| service.language_enabled(&language))
+                    && self
+                        .active_language_lsp_id(cx)
+                        .is_some_and(|language| service.language_enabled(&language))
             })
         {
             key_context.add("copilot_enabled");
@@ -5395,6 +5397,9 @@ impl Editor {
         cx: &mut Context<Self>,
     ) -> Option<Task<Result<()>>> {
         self.hide_mouse_cursor(HideMouseCursorOrigin::TypingAction, cx);
+        if action.item_ix.is_none() && self.accept_copilot(window, cx) {
+            return Some(Task::ready(Ok(())));
+        }
         self.do_completion(action.item_ix, CompletionIntent::Compose, window, cx)
     }
 

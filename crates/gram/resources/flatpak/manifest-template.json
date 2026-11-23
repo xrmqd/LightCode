@@ -41,7 +41,7 @@
         "envsubst < gram.desktop.in > gram-editor.desktop && install -Dm755 gram-editor.desktop /app/share/applications/$APP_ID.desktop",
         "envsubst < flatpak/gram.metainfo.xml.in > gram.metainfo.xml && install -Dm644 gram.metainfo.xml /app/share/metainfo/$APP_ID.metainfo.xml",
         "sed -i -e '/@release_info@/{r flatpak/release-info/$CHANNEL' -e 'd}' /app/share/metainfo/$APP_ID.metainfo.xml",
-        "install -Dm755 bin/gram /app/bin/gram",
+        "install -Dm755 bin/lcode /app/bin/lcode",
         "install -Dm755 libexec/gram-editor /app/libexec/gram-editor",
         "install -Dm755 lib/* -t /app/lib"
       ],

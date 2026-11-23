@@ -87,6 +87,25 @@ pub struct ExtensionManifest {
     pub debug_adapters: BTreeMap<Arc<str>, DebugAdapterManifestEntry>,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub debug_locators: BTreeMap<Arc<str>, DebugLocatorManifestEntry>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub commands: BTreeMap<Arc<str>, ExtensionCommand>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inline_completion_provider: Option<InlineCompletionProvider>,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+pub struct ExtensionCommand {
+    pub title: String,
+    #[serde(default)]
+    pub editor_toolbar: bool,
+    #[serde(default)]
+    pub language: Option<String>,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum InlineCompletionProvider {
+    GithubCopilot,
 }
 
 impl ExtensionManifest {
@@ -258,6 +277,8 @@ fn manifest_from_old_manifest(manifest_json: OldExtensionManifest, extension_id:
         capabilities: Vec::new(),
         debug_adapters: Default::default(),
         debug_locators: Default::default(),
+        commands: Default::default(),
+        inline_completion_provider: None,
     }
 }
 
@@ -288,6 +309,8 @@ mod tests {
             capabilities: vec![],
             debug_adapters: Default::default(),
             debug_locators: Default::default(),
+            commands: Default::default(),
+            inline_completion_provider: None,
         }
     }
 

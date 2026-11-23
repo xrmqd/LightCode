@@ -405,7 +405,7 @@ JavaScript files automatically on save:
 If you encounter issues with formatting or linting:
 
 1. Check the editor log file for error messages (Use the command palette:
-   `gram: open log`)
+   `lcode: open log`)
 2. Ensure external tools (formatters, linters) are correctly installed and in
    your PATH.
 3. Verify configurations in both Gram settings and language-specific config
@@ -456,7 +456,7 @@ will automatically detect and make available any themes in this directory.
 ### Using Theme Extensions
 
 Gram supports theme extensions. Find the URL for the theme you want to install
-and install it from the Extensions panel ({#kb gram::Extensions}).
+and install it from the Extensions panel ({#kb lcode::Extensions}).
 
 To create your own theme extension, refer to the
 [Developing Theme Extensions](./extensions/themes.md) guide.

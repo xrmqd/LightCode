@@ -58,7 +58,7 @@ linux() {
     rm -rf "$HOME/.local/lightcode$suffix.app"
 
     # Remove the binary symlink
-    rm -f "$HOME/.local/bin/lightcode"
+    rm -f "$HOME/.local/bin/lcode"
 
     app_id="dev.lightcode.editor"
     if [ "$channel" = "dev" ]; then
@@ -113,15 +113,15 @@ macos() {
     fi
 
     # Remove only a CLI symlink pointing into this LightCode application.
-    if [ -L /usr/local/bin/lightcode ]; then
-        cli_target=$(readlink /usr/local/bin/lightcode)
+    if [ -L /usr/local/bin/lcode ]; then
+        cli_target=$(readlink /usr/local/bin/lcode)
         case "$cli_target" in
         "/Applications/$app/Contents/MacOS/cli")
-            rm -f /usr/local/bin/lightcode
+            rm -f /usr/local/bin/lcode
             ;;
         esac
     fi
-    rm -f "$HOME/.local/bin/lightcode"
+    rm -f "$HOME/.local/bin/lcode"
 
     # Remove the database directory for this channel
     rm -rf "$HOME/Library/Application Support/LightCode/db/0-$db_suffix"

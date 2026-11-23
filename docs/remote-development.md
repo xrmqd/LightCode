@@ -78,7 +78,7 @@ code, language servers, tasks, and the terminal all run on the remote server.
 ### Connect from the command line
 
 To open the editor and connect to a remote project directly from the terminal,
-use a command like `gram ssh://[<user>@]<host>[:<port>]/<path-to-project>`.
+use a command like `lcode ssh://[<user>@]<host>[:<port>]/<path-to-project>`.
 
 It is currently not possible to pass any other arguments to SSH from the
 commandline. A workaround here is to set other options you need in your SSH
@@ -104,7 +104,7 @@ The following platforms should work:
 ## Configuration
 
 The list of remote servers is stored in your settings file {#kb
-gram::OpenSettings}. You can edit this list using the Remote Projects dialog
+lcode::OpenSettings}. You can edit this list using the Remote Projects dialog
 {#kb projects::OpenRemote}, which provides some robustness - for example it
 checks that the connection can be established before writing it to the settings
 file.
@@ -157,12 +157,12 @@ You can also set a nickname for the remote server:
 ```
 
 If you use the command line to open a connection to a host by doing
-`gram ssh://192.168.1.10/~/.vimrc`, then extra options are read from your
+`lcode ssh://192.168.1.10/~/.vimrc`, then extra options are read from your
 settings file by finding the first connection that matches the
 host/username/port of the URL on the command line.
 
 Additionally it's worth noting that while you can pass a password on the command
-line `gram ssh://user:password@host/~`, we do not support writing a password to
+line `lcode ssh://user:password@host/~`, we do not support writing a password to
 your settings file. If you're connecting repeatedly to the same host, you should
 configure key-based authentication.
 
@@ -384,4 +384,4 @@ LightCode will set for you.
 
 ## Known Limitations
 
-- You can't open files from the remote Terminal by typing the `gram` command.
+- You can't open files from the remote Terminal by typing the `lcode` command.

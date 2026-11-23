@@ -37,7 +37,7 @@ pub fn set_external_command_provider(provider: CommandProvider, cx: &mut App) {
 }
 
 pub fn hide_namespace(namespace: &'static str, cx: &mut App) {
-    CommandPaletteFilter::update_global(cx, |filter| filter.hide_namespace(namespace));
+    CommandPaletteFilter::update_global(cx, |filter, _| filter.hide_namespace(namespace));
 }
 
 pub fn init(cx: &mut App) {

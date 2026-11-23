@@ -80,7 +80,7 @@ impl ExtensionBuilder {
         options: CompileExtensionOptions,
         fs: Arc<dyn Fs>,
     ) -> Result<()> {
-        populate_defaults(extension_manifest, extension_dir, fs).await?;
+        populate_defaults(extension_manifest, extension_dir, fs.clone()).await?;
 
         if extension_dir.is_relative() {
             bail!("extension dir {} is not an absolute path", extension_dir.display());
